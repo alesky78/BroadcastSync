@@ -1,0 +1,25 @@
+imparare le operazoni binarie 
+Bitwise and Bit Shift Operators tutorial and usage su youtube
+
+--- UUID convertire a byte array
+
+UUID uuid = UUID.randomUUID();
+long mostSignificantBits = uuid.getMostSignificantBits();
+long leastSignificantBits = uuid.getLeastSignificantBits();
+byte[] uuidByteArray = new byte[16];
+for (int i = 0; i < 8; i++) {
+    uuidByteArray[i] = (byte) (mostSignificantBits >>> 8 * (7 - i));
+    uuidByteArray[i + 8] = (byte) (leastSignificantBits >>> 8 * (7 - i));
+}
+
+
+--- UUID rigenerarlo dal byte array
+
+byte[] uuidBytes = // array di byte del UUID
+long mostSignificantBits = 0;
+long leastSignificantBits = 0;
+for (int i = 0; i < 8; i++) {
+    mostSignificantBits |= (long) (uuidBytes[i] & 0xFF) << (8 * (7 - i));
+    leastSignificantBits |= (long) (uuidBytes[i + 8] & 0xFF) << (8 * (7 - i));
+}
+UUID uuid = new UUID(mostSignificantBits, leastSignificantBits);
