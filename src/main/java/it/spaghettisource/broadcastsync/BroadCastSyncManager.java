@@ -110,10 +110,19 @@ public class BroadCastSyncManager {
 		
 		log.info(start);
 		
-		log.info("started the theads");
-				
-		sequentializer.startDatagramSequentializer();
-		udpServer.startServer();
+		try {
+			sequentializer.startDatagramSequentializer();
+			udpServer.startServer();			
+		}catch (Exception cause) {
+			//if there is an error stop the thread started if any			
+			sequentializer.shutdown();
+			queue.clear();
+			udpServer.shutdown();
+			
+			log.error("emergency shutdown, all the started thread are interrupted",cause);
+			throw cause;
+		}
+
 		
 		started = true;
 		
@@ -133,7 +142,6 @@ public class BroadCastSyncManager {
 		
 		udpServer.shutdown();
 		sequentializer.shutdown();
-		
 		queue.clear();
 		
 		log.info("shutdown BroadCastSyncManager completed succesfully");
