@@ -15,6 +15,7 @@ public class BroadCastSyncConfig {
 	private int serverPort;
 	
 	//heartbeat
+	private boolean enableHeartbeat;		
 	private long heartbeatIntervalTimeMillis;	
 	
 	//client
@@ -100,6 +101,14 @@ public class BroadCastSyncConfig {
 		this.cleaningExpiredMessageIntervalTimeMillis = cleaningExpiredMessageLoopTime;
 	}
 	
+	public boolean isEnableHeartbeat() {
+		return enableHeartbeat;
+	}
+
+	public void setEnableHeartbeat(boolean enableHeartbeat) {
+		this.enableHeartbeat = enableHeartbeat;
+	}
+
 	public long getHeartbeatIntervalTimeMillis() {
 		return heartbeatIntervalTimeMillis;
 	}
@@ -134,6 +143,7 @@ public class BroadCastSyncConfig {
 		config.clientPort = 4446;		
 		config.datagramPacketBufferSize = 1024;
 		config.broadcastAddress = "255.255.255.255";
+		config.enableHeartbeat = true;
 		config.heartbeatIntervalTimeMillis = 1000;
 		config.payloadExpirationTime = 3000;
 		config.cleaningExpiredMessageIntervalTimeMillis = 6000;

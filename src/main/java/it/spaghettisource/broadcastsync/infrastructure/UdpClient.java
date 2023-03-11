@@ -33,6 +33,10 @@ public class UdpClient {
 	private BroadCastSyncConfig config;
 	private ExceptionFactory exceptionFactory;
 	
+	private DatagramSocket clientSocket;
+	private InetAddress broadcastAddress;
+	private InetAddress clientAddress;
+	
 	private StringSeralizer stringSeralizer;
 	private ObjectSerializer<Serializable> objectSerializer;	
 	
@@ -44,6 +48,45 @@ public class UdpClient {
 		this.stringSeralizer = new StringSeralizer(exceptionFactory);
 		this.objectSerializer = new ObjectSerializer<>(exceptionFactory);
 		
+	}
+	
+	public void startClient() throws BroadCastSyncRuntimeException{
+
+		//prepare the broadcast address
+		try {
+			broadcastAddress = InetAddress.getByName(config.getBroadcastAddress());
+		} catch (UnknownHostException cause) {
+			BroadCastSyncRuntimeException ex = exceptionFactory.getBroadcastAddressCannotBeResolved(cause,config.getBroadcastAddress());
+			log.error(ex.getLocalizedMessage(),ex);
+			throw ex;
+		}
+		
+		//get the local host address
+		try {
+			clientAddress = InetAddress.getLocalHost();
+		} catch (UnknownHostException cause) {
+			BroadCastSyncRuntimeException ex = exceptionFactory.getLocalHostNameCannotBeResolved(cause);
+			log.error(ex.getLocalizedMessage(),ex);
+			throw ex;
+		}
+
+		//create the DatagramSocket used by the client
+		try {
+			//socket = new DatagramSocket();			
+			clientSocket = new DatagramSocket(config.getClientPort(),clientAddress);
+		}catch (SocketException cause) {
+			BroadCastSyncRuntimeException ex = exceptionFactory.getImpossibleOpenDatagramSocket(cause,config.getClientPort());
+			log.error(ex.getLocalizedMessage(),ex);
+			throw ex;
+
+		} 
+		
+	}
+	
+	public void shutdown() {
+		if(clientSocket!=null) {
+			clientSocket.close();
+		}
 	}
 
 	public void sendMessage(byte[] data) throws BroadCastSyncRuntimeException{
@@ -60,35 +103,13 @@ public class UdpClient {
 	
 	private void sendMessage(byte[] data, int messageType) throws BroadCastSyncRuntimeException{
 	
-		//prepare the broadcast address
-		InetAddress broadcastAddress;
-		try {
-			broadcastAddress = InetAddress.getByName(config.getBroadcastAddress());
-		} catch (UnknownHostException cause) {
-			BroadCastSyncRuntimeException ex = exceptionFactory.getBroadcastAddressCannotBeResolved(cause,config.getBroadcastAddress());
-			log.error(ex.getLocalizedMessage(),ex);
-			throw ex;
-		}
-
 		//prepare the packets
 		DatagramPacket[] packets = DatagramPacketDataProtocol.buildDatagramPacket(broadcastAddress, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType, data);
 		
-		//get the local host address
-		InetAddress clientAddress;
 		try {
-			clientAddress = InetAddress.getLocalHost();
-		} catch (UnknownHostException cause) {
-			BroadCastSyncRuntimeException ex = exceptionFactory.getLocalHostNameCannotBeResolved(cause);
-			log.error(ex.getLocalizedMessage(),ex);
-			throw ex;
-		}
 
-		//create the DatagramSocket and send the message on the network
-		DatagramSocket socket = null;
-		try {
-			socket = new DatagramSocket(config.getClientPort(),clientAddress);
 			for (DatagramPacket datagramPacket : packets) {
-			    socket.send(datagramPacket);
+				clientSocket.send(datagramPacket);
 			}
 		} catch (PortUnreachableException cause) {
         	//this error should never be received, the DatagramSocket send messages on broadcast
@@ -96,22 +117,14 @@ public class UdpClient {
 			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;			
 			
-        }catch (SocketException cause) {
-			BroadCastSyncRuntimeException ex = exceptionFactory.getImpossibleOpenDatagramSocket(cause,config.getClientPort());
-			log.error(ex.getLocalizedMessage(),ex);
-			throw ex;
-
-		} catch (IOException cause) {
+        } catch (IOException cause) {
         	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;
 			
-		}finally {
-			if(socket!=null) {
-				socket.close();				
-			}
-			
 		}
+			
+		
 		
 		
 	}

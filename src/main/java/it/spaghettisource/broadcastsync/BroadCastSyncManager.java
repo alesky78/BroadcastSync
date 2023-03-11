@@ -102,7 +102,7 @@ public class BroadCastSyncManager {
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void startServer() throws BroadCastSyncRuntimeException{
+	public void start() throws BroadCastSyncRuntimeException{
 		
 		if(!initialized) {
 			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
@@ -127,7 +127,12 @@ public class BroadCastSyncManager {
 		try {
 			sequentializer.startDatagramSequentializer();
 			udpServer.startServer();
-			heartbeatEmitter.startHeartbeatEmitter();
+			
+			udpClient.startClient();
+			
+			if(configuration.isEnableHeartbeat()){
+				heartbeatEmitter.startHeartbeatEmitter();				
+			}
 			
 		}catch (BroadCastSyncRuntimeException cause) {
 			//if there is an error stop the thread started if any			
@@ -148,7 +153,7 @@ public class BroadCastSyncManager {
 	/**
 	 * stop the server infrastructure: 
 	 */
-	public void shutdownServer() {
+	public void shutdown() {
 		
 		if(!initialized) {
 			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
@@ -156,10 +161,17 @@ public class BroadCastSyncManager {
 		
 		log.info("shutdown BroadCastSyncManager");
 		
-		heartbeatEmitter.shutdown();
+		if(configuration.isEnableHeartbeat()){
+			heartbeatEmitter.shutdown();
+		}
+		
+		udpClient.shutdown();
+		
 		udpServer.shutdown();
 		sequentializer.shutdown();
 		queue.clear();
+		
+		started = false;
 		
 		log.info("shutdown BroadCastSyncManager completed succesfully");
 		
@@ -219,10 +231,19 @@ public class BroadCastSyncManager {
 		
 		BroadCastSyncConfig conf = BroadCastSyncConfig.buildDefault();
 		conf.setDevelopMode(true);
+		conf.setEnableHeartbeat(true);
 		
 		manager.initialize(conf, new MessageHandlerLog());
-		manager.startServer();
-		
+		manager.start();
+
+		manager.sendMessage("ciao stringa byte array".getBytes());
+		manager.sendMessage("ciao stringa");
+		manager.sendMessage(new Integer(9999999));			
+
+		manager.shutdown();
+		Thread.sleep(1000);
+		manager.start();		
+//		
 //		manager.sendMessage("ciao stringa byte array".getBytes());
 //		manager.sendMessage("ciao stringa");
 //		manager.sendMessage(new Integer(9999999));

@@ -87,7 +87,11 @@ public class UdpServer implements Runnable {
             	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 				log.error(ex.getLocalizedMessage(),ex);
 				
-            }catch (SocketTimeoutException cause) {
+            }catch (SocketException cause) {
+            	//this exception is throw if the thread is interrupted
+				log.info("DatagramSocket closed");
+				
+			}catch (SocketTimeoutException cause) {
             	//this error should never be received, we don use time out on server side
             	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 				log.error(ex.getLocalizedMessage(),ex);
@@ -128,10 +132,14 @@ public class UdpServer implements Runnable {
 	
 	
 	public void shutdown() {
+		
 		stopped = true;
 		if(thread!=null) {
 			thread.interrupt();			
 		}
+		
+		serverSocket.close();		
+		
 	}
 	
 }
