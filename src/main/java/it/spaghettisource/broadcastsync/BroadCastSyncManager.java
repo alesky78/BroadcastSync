@@ -27,6 +27,7 @@ public class BroadCastSyncManager {
 	private DatagramSequentializer sequentializer;
 	private UdpServer udpServer;
 	
+	private BroadCastSyncConfig configuration;
 	private ExceptionFactory exceptionFactory;
 	
 	private boolean initialized;
@@ -37,18 +38,30 @@ public class BroadCastSyncManager {
 		initialized = false;
 		started = false;
 	}
-
+	
+	
 	/**
 	 * initialize the infrastructure but don't start the server
+	 * using the default configuration
 	 * 
 	 * @throws BroadCastSyncException
 	 */
 	public void initialize(MessageProcessor messageProcessor){
+		this.initialize(BroadCastSyncConfig.buildDefault(), messageProcessor);
+	}
+
+	/**
+	 * initialize the infrastructure but don't start the server
+	 * with a custom configuration
+	 * 
+	 * @throws BroadCastSyncException
+	 */
+	public void initialize(BroadCastSyncConfig config, MessageProcessor messageProcessor){
 		
 		log.info("init BroadCastSyncManager");
 		
 		//load default configuration
-		BroadCastSyncConfig config = BroadCastSyncConfig.buildDefault();
+		configuration = config;
 		
 		//prepare the i18n messaged
 		FileMessageRepository exceptionMessageRepository = new FileMessageRepository();
@@ -57,12 +70,12 @@ public class BroadCastSyncManager {
 		exceptionMessageHelper.setMessageRepository(exceptionMessageRepository);
 
 		//create the exception factory
-		exceptionFactory = new ExceptionFactory(config,exceptionMessageHelper);
+		exceptionFactory = new ExceptionFactory(configuration,exceptionMessageHelper);
 		
 		//create the server infrastructure
 		queue = new DatagramPacketQueue();
-		sequentializer = new DatagramSequentializer(config, exceptionFactory, queue, messageProcessor);
-		udpServer = new UdpServer(config, exceptionFactory,queue);
+		sequentializer = new DatagramSequentializer(configuration, exceptionFactory, queue, messageProcessor);
+		udpServer = new UdpServer(configuration, exceptionFactory,queue);
 		
 		//set the infrasrtucture as initialized
 		initialized = true;
@@ -130,7 +143,10 @@ public class BroadCastSyncManager {
 	public static void main(String[] args) throws Exception {
 		BroadCastSyncManager manager = new BroadCastSyncManager();
 		
-		manager.initialize(new MessageProcessorLog());
+		BroadCastSyncConfig conf = BroadCastSyncConfig.buildDefault();
+		conf.setDevelopMode(true);
+		
+		manager.initialize(conf, new MessageProcessorLog());
 		manager.start();
 		
 	}

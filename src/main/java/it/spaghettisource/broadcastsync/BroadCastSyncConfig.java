@@ -28,6 +28,13 @@ public class BroadCastSyncConfig {
 	private String language;	
 	private String country;	
 	
+	/**
+	 * the develop mode flag, is create to support implementation debug and unit test
+	 * activating the develop mode:
+	 *  - disable the filter out of the message same from the same machine or the server, mean that the instance will receive the message sent by itself 
+	 */
+	private boolean developMode;
+	
 	public BroadCastSyncConfig() {
 		super();
 	}
@@ -72,6 +79,14 @@ public class BroadCastSyncConfig {
 		this.cleaningExpiredMessageLoopTime = cleaningExpiredMessageLoopTime;
 	}
 	
+	public boolean isDevelopMode() {
+		return developMode;
+	}
+
+	public void setDevelopMode(boolean developMode) {
+		this.developMode = developMode;
+	}
+
 	public String getLanguage() {
 		return language;
 	}
@@ -102,6 +117,8 @@ public class BroadCastSyncConfig {
 		
 		config.language = Locale.getDefault().getLanguage();
 		config.country = Locale.getDefault().getCountry();
+		
+		config.developMode = false;
 
 		return config;
 	}

@@ -49,7 +49,7 @@ public class UdpServer implements Runnable {
 	@Override
 	public void run() {
 
-		log.info("UdpServer started, address:"+serverAddress+" canonicalserverName:"+canonicalserverName);
+		log.info("UdpServer thread started on address:"+serverAddress+" canonicalserverName:"+canonicalserverName);
 		
 		while (!stopped) {
 			
@@ -61,12 +61,13 @@ public class UdpServer implements Runnable {
 				serverSocket.receive(messagePacket);
 				
 				//filter the message send by itself
-				if(!messagePacket.getAddress().getHostAddress().equals(serverAddress)) {
+				//in develop mode the messages send by the same server are not filtered out
+				if(!messagePacket.getAddress().getHostAddress().equals(serverAddress) || config.isDevelopMode()) {
 					//add the message in the queue and restart to listen for a new datagram
 					log.debug("DatagramPacket received");
 					queue.offer(messagePacket);		
 				}else {
-					log.debug("DatagramPacket filtered out, send from this machine");
+					log.debug("DatagramPacket filtered out, sent from this machine");
 				}
 				
 				

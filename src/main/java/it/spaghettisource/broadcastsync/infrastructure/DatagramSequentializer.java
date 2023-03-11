@@ -56,7 +56,7 @@ public class DatagramSequentializer implements Runnable{
 	@Override
 	public void run() {
 
-		log.debug("DatagramSequentializer started");
+		log.info("DatagramSequentializer thread started");
 		
 		lastCleaningLoopTime = System.currentTimeMillis();
 		
