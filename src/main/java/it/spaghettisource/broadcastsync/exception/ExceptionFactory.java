@@ -47,12 +47,32 @@ public class ExceptionFactory {
 		return getRuntimeException(cause, locale, "exception.server.localHostNameCannotBeResolved", EMPTY_PARAMETERS);
 	}	
 	
+
+	public BroadCastSyncRuntimeException getBroadcastAddressCannotBeResolved(UnknownHostException cause, String broadcastAddress) {
+		return getRuntimeException(cause, locale, "exception.client.broadcastAddressCannotBeResolved", new Object[] {broadcastAddress});
+	}	
+	
 	public BroadCastSyncExceptionDataProtocolNotRespected getBroadCastSyncExceptionDatagramDataProtocolNotRespected(Exception cause) {
-		BroadCastSyncExceptionDataProtocolNotRespected ex = new BroadCastSyncExceptionDataProtocolNotRespected(cause, "exception.datagram.protocolNotRespected=", EMPTY_PARAMETERS);
+		BroadCastSyncExceptionDataProtocolNotRespected ex = new BroadCastSyncExceptionDataProtocolNotRespected(cause, "exception.datagram.protocolNotRespected", EMPTY_PARAMETERS);
 		ex.setMessageHelper(messageHelper);
 		ex.setLocale(locale);
 		return ex;
 	}	
+	
+	public BroadCastSyncExceptionSerializeData getImpossibleSerializeObject(Exception cause) {
+		BroadCastSyncExceptionSerializeData ex = new BroadCastSyncExceptionSerializeData(cause, "exception.serialize.impossibleSerializeObject", EMPTY_PARAMETERS);
+		ex.setMessageHelper(messageHelper);
+		ex.setLocale(locale);
+		return ex;
+	}	
+	
+	public BroadCastSyncExceptionDeserializeData getImpossibleDeserializeObject(Exception cause) {
+		BroadCastSyncExceptionDeserializeData ex = new BroadCastSyncExceptionDeserializeData(cause, "exception.deserialize.impossibleDeserializeObject", EMPTY_PARAMETERS);
+		ex.setMessageHelper(messageHelper);
+		ex.setLocale(locale);
+		return ex;
+	}	
+	
 	
 	/**
 	 * support method to create an exception
@@ -112,6 +132,11 @@ public class ExceptionFactory {
 		ex.setLocale(locale);		
 		return ex;
 	}
+
+
+
+	
+
 
 
 

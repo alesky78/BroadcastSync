@@ -15,9 +15,10 @@ public class BroadCastSyncConfig {
 	private int serverPort;
 	
 	//client
+	private int clientPort;	
 	private String broadcastAddress;
 	
-	//protocol
+	//data protocol
 	private int datagramPacketBufferSize;
 	
 	//DatagramSequentializer
@@ -45,6 +46,14 @@ public class BroadCastSyncConfig {
 
 	public void setServerPort(int serverPort) {
 		this.serverPort = serverPort;
+	}
+	
+	public int getClientPort() {
+		return clientPort;
+	}
+
+	public void setClientPort(int clientPort) {
+		this.clientPort = clientPort;
 	}
 
 	public int getDatagramPacketBufferSize() {
@@ -110,6 +119,7 @@ public class BroadCastSyncConfig {
 	public static BroadCastSyncConfig buildDefault() {
 		BroadCastSyncConfig config = new BroadCastSyncConfig();
 		config.serverPort = 4445;
+		config.clientPort = 4446;		
 		config.datagramPacketBufferSize = 1024;
 		config.broadcastAddress = "255.255.255.255";
 		config.payloadExpirationTime = 3000;

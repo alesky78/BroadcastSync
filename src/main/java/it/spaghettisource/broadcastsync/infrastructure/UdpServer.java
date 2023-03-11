@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
-import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 

@@ -11,8 +11,8 @@ import it.spaghettisource.broadcastsync.i18n.FileMessageRepository;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramPacketQueue;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramSequentializer;
 import it.spaghettisource.broadcastsync.infrastructure.UdpServer;
-import it.spaghettisource.broadcastsync.message.MessageProcessor;
-import it.spaghettisource.broadcastsync.message.MessageProcessorLog;
+import it.spaghettisource.broadcastsync.processor.MessageProcessor;
+import it.spaghettisource.broadcastsync.processor.MessageProcessorLog;
 
 /**
  * The BroadCastSyncManager is responsible to initialize the infrastructure and start it

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
+import it.spaghettisource.broadcastsync.message.MessageType;
 
 public class ClientTest {
 

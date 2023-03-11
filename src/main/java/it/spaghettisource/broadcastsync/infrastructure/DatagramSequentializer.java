@@ -1,5 +1,6 @@
 package it.spaghettisource.broadcastsync.infrastructure;
 
+import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -11,10 +12,16 @@ import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionDataProtocolNotRespected;
+import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionDeserializeData;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.message.MessageByteArray;
-import it.spaghettisource.broadcastsync.message.MessageProcessor;
+import it.spaghettisource.broadcastsync.message.MessageObject;
+import it.spaghettisource.broadcastsync.message.MessageString;
+import it.spaghettisource.broadcastsync.message.MessageType;
+import it.spaghettisource.broadcastsync.processor.MessageProcessor;
+import it.spaghettisource.broadcastsync.serializer.ObjectSerializer;
+import it.spaghettisource.broadcastsync.serializer.StringSeralizer;
 
 /**
  * the role of the DatagramSequentializer is to reorganize the raw data received and propose them to the listener.
@@ -33,17 +40,17 @@ public class DatagramSequentializer implements Runnable{
 	private Thread thread;
 	
 	private long lastCleaningLoopTime;
+	private Map<String,Payload> payloads;
 	
 	private BroadCastSyncConfig config;
 	private ExceptionFactory exceptionFactory;
 	private DatagramPacketQueue queue;
-	
 	private MessageProcessor messageProcessor;
-	
 	private DatagramPacketDataProtocol protocol;
 	
-	private Map<String,Payload> payloads;
-
+	private StringSeralizer stringDeseralizer;
+	private ObjectSerializer<Serializable> objectDeseralizer;
+	
 	public DatagramSequentializer(BroadCastSyncConfig config,ExceptionFactory exceptionFactory, DatagramPacketQueue queue, MessageProcessor messageProcessor){
 		this.config = config;
 		this.exceptionFactory = exceptionFactory;
@@ -52,6 +59,9 @@ public class DatagramSequentializer implements Runnable{
 		
 		protocol = new DatagramPacketDataProtocol(exceptionFactory);
 		payloads = new HashMap<String, Payload>();
+		
+		stringDeseralizer = new StringSeralizer(exceptionFactory);
+		objectDeseralizer = new ObjectSerializer<Serializable>(exceptionFactory);
 }
 	
 	@Override
@@ -121,12 +131,7 @@ public class DatagramSequentializer implements Runnable{
 			if(payload.isCompleted()) {
 				payloads.remove(messageId);
 				
-				if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY) {
-					
-					log.debug("message "+messageId+" complete, total packets:"+payload.getTotalPackets());
-					MessageByteArray event = new MessageByteArray(payload.getData(), payload.getClientAddress(), payload.getClientCanonicalHostName());
-					messageProcessor.onMessageReceived(event);
-				}
+				deserializeDataAndCallMessageProcessor(messageId, payload);
 				
 			}
 
@@ -142,6 +147,41 @@ public class DatagramSequentializer implements Runnable{
 			
 		}
 
+	}
+
+	/**
+	 * deserialize the message data based on the message type of the payload
+	 * and build the correct message used by the messageProcessor
+	 * 
+	 * @param messageId
+	 * @param payload
+	 */
+	private void deserializeDataAndCallMessageProcessor(String messageId, Payload payload) {
+		
+		log.debug("message "+messageId+" complete, total packets:"+payload.getTotalPackets());
+		
+		if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY) {
+			MessageByteArray message = new MessageByteArray(payload.getData(), payload.getClientAddress(), payload.getClientCanonicalHostName());
+			messageProcessor.onMessageReceived(message);
+			
+		}else if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_UTF8_STRING) {
+			
+			MessageString message = new MessageString(stringDeseralizer.deserialize(payload.getData()), payload.getClientAddress(), payload.getClientCanonicalHostName());
+			messageProcessor.onMessageReceived(message);			
+			
+		}else if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_JAVA_OBJECT) {
+			
+			try {
+				MessageObject message = new MessageObject(objectDeseralizer.deserialize(payload.getData()), payload.getClientAddress(), payload.getClientCanonicalHostName());
+				messageProcessor.onMessageReceived(message);				
+			} catch (BroadCastSyncExceptionDeserializeData e) {
+				
+				log.error("error deserializing the java object received",e);
+			}
+		}
+		
+		
+		
 	}
 	
 	/**

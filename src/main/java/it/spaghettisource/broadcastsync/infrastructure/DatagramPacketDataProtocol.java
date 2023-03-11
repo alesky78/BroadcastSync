@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionDataProtocolNotRespected;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
+import it.spaghettisource.broadcastsync.message.MessageType;
 
 /**
  * A message sent on the network by BroadCastSync follows a specific data protocol. 
