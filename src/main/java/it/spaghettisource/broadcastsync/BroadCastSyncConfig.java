@@ -14,6 +14,9 @@ public class BroadCastSyncConfig {
 	//server
 	private int serverPort;
 	
+	//heartbeat
+	private long heartbeatIntervalTimeMillis;	
+	
 	//client
 	private int clientPort;	
 	private String broadcastAddress;
@@ -23,7 +26,7 @@ public class BroadCastSyncConfig {
 	
 	//DatagramSequentializer
 	private long payloadExpirationTime;
-	private long cleaningExpiredMessageLoopTime;
+	private long cleaningExpiredMessageIntervalTimeMillis;
 	
 	//i18n for the messages, like exception messages
 	private String language;	
@@ -36,8 +39,17 @@ public class BroadCastSyncConfig {
 	 */
 	private boolean developMode;
 	
+	
 	public BroadCastSyncConfig() {
 		super();
+	}
+	
+	public boolean isDevelopMode() {
+		return developMode;
+	}
+
+	public void setDevelopMode(boolean developMode) {
+		this.developMode = developMode;
 	}
 
 	public int getServerPort() {
@@ -80,20 +92,20 @@ public class BroadCastSyncConfig {
 		this.payloadExpirationTime = payloadExpirationTime;
 	}
 	
-	public long getCleaningExpiredMessageLoopTime() {
-		return cleaningExpiredMessageLoopTime;
+	public long getCleaningExpiredMessageIntervalTimeMillis() {
+		return cleaningExpiredMessageIntervalTimeMillis;
 	}
 
-	public void setCleaningExpiredMessageLoopTime(long cleaningExpiredMessageLoopTime) {
-		this.cleaningExpiredMessageLoopTime = cleaningExpiredMessageLoopTime;
+	public void setCleaningExpiredMessageIntervalTimeMillis(long cleaningExpiredMessageLoopTime) {
+		this.cleaningExpiredMessageIntervalTimeMillis = cleaningExpiredMessageLoopTime;
 	}
 	
-	public boolean isDevelopMode() {
-		return developMode;
+	public long getHeartbeatIntervalTimeMillis() {
+		return heartbeatIntervalTimeMillis;
 	}
 
-	public void setDevelopMode(boolean developMode) {
-		this.developMode = developMode;
+	public void setHeartbeatIntervalTimeMillis(long heartbeatInterval) {
+		this.heartbeatIntervalTimeMillis = heartbeatInterval;
 	}
 
 	public String getLanguage() {
@@ -122,8 +134,9 @@ public class BroadCastSyncConfig {
 		config.clientPort = 4446;		
 		config.datagramPacketBufferSize = 1024;
 		config.broadcastAddress = "255.255.255.255";
+		config.heartbeatIntervalTimeMillis = 1000;
 		config.payloadExpirationTime = 3000;
-		config.cleaningExpiredMessageLoopTime = 6000;
+		config.cleaningExpiredMessageIntervalTimeMillis = 6000;
 		
 		config.language = Locale.getDefault().getLanguage();
 		config.country = Locale.getDefault().getCountry();

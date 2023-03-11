@@ -9,14 +9,15 @@ import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionSerializeData;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
+import it.spaghettisource.broadcastsync.handler.MessageHandler;
+import it.spaghettisource.broadcastsync.handler.MessageHandlerLog;
 import it.spaghettisource.broadcastsync.i18n.FileMessageHelper;
 import it.spaghettisource.broadcastsync.i18n.FileMessageRepository;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramPacketQueue;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramSequentializer;
+import it.spaghettisource.broadcastsync.infrastructure.HeartbeatEmitter;
 import it.spaghettisource.broadcastsync.infrastructure.UdpClient;
 import it.spaghettisource.broadcastsync.infrastructure.UdpServer;
-import it.spaghettisource.broadcastsync.processor.MessageProcessor;
-import it.spaghettisource.broadcastsync.processor.MessageProcessorLog;
 
 /**
  * The BroadCastSyncManager is responsible to initialize the infrastructure and start it
@@ -31,6 +32,8 @@ public class BroadCastSyncManager {
 	private DatagramPacketQueue queue;
 	private DatagramSequentializer sequentializer;
 	private UdpServer udpServer;
+	
+	private HeartbeatEmitter heartbeatEmitter;
 	
 	private UdpClient udpClient;
 	
@@ -53,7 +56,7 @@ public class BroadCastSyncManager {
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void initialize(MessageProcessor messageProcessor){
+	public void initialize(MessageHandler messageProcessor){
 		this.initialize(BroadCastSyncConfig.buildDefault(), messageProcessor);
 	}
 
@@ -63,7 +66,7 @@ public class BroadCastSyncManager {
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void initialize(BroadCastSyncConfig config, MessageProcessor messageProcessor){
+	public void initialize(BroadCastSyncConfig config, MessageHandler messageProcessor){
 		
 		log.info("init BroadCastSyncManager");
 		
@@ -79,13 +82,14 @@ public class BroadCastSyncManager {
 		//create the exception factory
 		exceptionFactory = new ExceptionFactory(configuration,exceptionMessageHelper);
 		
-		//create the server infrastructure
+		//create the infrastructure
 		queue = new DatagramPacketQueue();
 		sequentializer = new DatagramSequentializer(configuration, exceptionFactory, queue, messageProcessor);
 		udpServer = new UdpServer(configuration, exceptionFactory,queue);
 		
-		//create the client infrastructure
 		udpClient = new UdpClient(config, exceptionFactory);
+		
+		heartbeatEmitter = new HeartbeatEmitter(config, exceptionFactory, udpClient);
 		
 		//set the infrasrtucture as initialized
 		initialized = true;
@@ -123,6 +127,7 @@ public class BroadCastSyncManager {
 		try {
 			sequentializer.startDatagramSequentializer();
 			udpServer.startServer();
+			heartbeatEmitter.startHeartbeatEmitter();
 			
 		}catch (BroadCastSyncRuntimeException cause) {
 			//if there is an error stop the thread started if any			
@@ -151,6 +156,7 @@ public class BroadCastSyncManager {
 		
 		log.info("shutdown BroadCastSyncManager");
 		
+		heartbeatEmitter.shutdown();
 		udpServer.shutdown();
 		sequentializer.shutdown();
 		queue.clear();
@@ -214,12 +220,12 @@ public class BroadCastSyncManager {
 		BroadCastSyncConfig conf = BroadCastSyncConfig.buildDefault();
 		conf.setDevelopMode(true);
 		
-		manager.initialize(conf, new MessageProcessorLog());
+		manager.initialize(conf, new MessageHandlerLog());
 		manager.startServer();
 		
-		manager.sendMessage("ciao stringa byte array".getBytes());
-		manager.sendMessage("ciao stringa");
-		manager.sendMessage(new Integer(9999999));
+//		manager.sendMessage("ciao stringa byte array".getBytes());
+//		manager.sendMessage("ciao stringa");
+//		manager.sendMessage(new Integer(9999999));
 		
 	}
 	

@@ -1,4 +1,4 @@
-package it.spaghettisource.broadcastsync.processor;
+package it.spaghettisource.broadcastsync.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,14 +8,14 @@ import it.spaghettisource.broadcastsync.message.MessageObject;
 import it.spaghettisource.broadcastsync.message.MessageString;
 
 /**
- * simple implementation of the {@link MessageProcessor} used for debug scope
+ * simple implementation of the {@link MessageHandler} used for debug scope
  * 
  * @author Alessandro D'Ottavio
  * @version 1.0
  */
-public class MessageProcessorLog implements MessageProcessor {
+public class MessageHandlerLog implements MessageHandler {
 
-	private static Logger  log = LoggerFactory.getLogger(MessageProcessorLog.class);
+	private static Logger  log = LoggerFactory.getLogger(MessageHandlerLog.class);
 
 	@Override
 	public void onMessageReceived(MessageByteArray message) {

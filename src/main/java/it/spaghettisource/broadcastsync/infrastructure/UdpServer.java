@@ -18,7 +18,7 @@ import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 
 /**
  * The UdpServer is the entry point for all the DatagramPacket received.
- * It is responsible to open the DatagramSocket and verify that the socket can be properly be open
+ * It is responsible to open the DatagramSocket and verify that the socket can be properly opened
  * 
  * @author Alessandro D'Ottavio
  * @version 1.0
@@ -46,6 +46,12 @@ public class UdpServer implements Runnable {
 	}
 
 
+	/**
+	 * This method represents the main body of the UdpServer thread. 
+	 * Within its loop, the thread continuously listens for a new request on the server socket. 
+	 * When a request is received, a DatagramPacket instance is created to hold the received message and added to the DatagramPacketQueue to be processed later.
+	 * Before adding the message to the queue, a check is made to filter out messages sent from the same server unless it is started in development mode. 
+	 */
 	@Override
 	public void run() {
 
@@ -94,13 +100,10 @@ public class UdpServer implements Runnable {
 			
 		}
 		
-		
 	}
 	
 	public void startServer() throws BroadCastSyncRuntimeException{
 		try {
-			stopped = false;
-			
 			InetAddress serverInfo = InetAddress.getLocalHost(); 
 			serverAddress = serverInfo.getHostAddress();
 			canonicalserverName = serverInfo.getCanonicalHostName();
@@ -117,6 +120,7 @@ public class UdpServer implements Runnable {
 			throw ex;
 		}
 		
+		stopped = false;
 		thread = new Thread(this);
 		thread.setName("UdpServer");
 		thread.start();
