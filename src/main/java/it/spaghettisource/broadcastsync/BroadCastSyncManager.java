@@ -3,8 +3,6 @@ package it.spaghettisource.broadcastsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import it.spaghettisource.broadcastsync.events.MessageReceivedEvent;
-import it.spaghettisource.broadcastsync.events.MessageReceivedListener;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.i18n.FileMessageHelper;
@@ -12,6 +10,8 @@ import it.spaghettisource.broadcastsync.i18n.FileMessageRepository;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramPacketQueue;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramSequentializer;
 import it.spaghettisource.broadcastsync.infrastructure.UdpServer;
+import it.spaghettisource.broadcastsync.message.MessageProcessor;
+import it.spaghettisource.broadcastsync.message.MessageProcessorLog;
 
 /**
  * The BroadCastSyncManager is responsible to initialize the infrastructure and start it
@@ -26,17 +26,24 @@ public class BroadCastSyncManager {
 	private DatagramPacketQueue queue;
 	private DatagramSequentializer sequentializer;
 	private UdpServer udpServer;
+	
+	private ExceptionFactory exceptionFactory;
+	
+	private boolean initialized;
+	private boolean started;	
 		
 	public BroadCastSyncManager() {
 		super();
+		initialized = false;
+		started = false;
 	}
 
 	/**
-	 * initialize the infrastructure without start it
+	 * initialize the infrastructure but don't start the server
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void init(MessageReceivedListener listener){
+	public void initialize(MessageProcessor messageProcessor){
 		
 		log.info("init BroadCastSyncManager");
 		
@@ -50,14 +57,15 @@ public class BroadCastSyncManager {
 		exceptionMessageHelper.setMessageRepository(exceptionMessageRepository);
 
 		//create the exception factory
-		ExceptionFactory exceptionFactory = new ExceptionFactory();
-		exceptionFactory.setMessageHelper(exceptionMessageHelper);
-		
+		exceptionFactory = new ExceptionFactory(config,exceptionMessageHelper);
 		
 		//create the server infrastructure
 		queue = new DatagramPacketQueue();
-		sequentializer = new DatagramSequentializer(config, exceptionFactory, queue, listener);
+		sequentializer = new DatagramSequentializer(config, exceptionFactory, queue, messageProcessor);
 		udpServer = new UdpServer(config, exceptionFactory,queue);
+		
+		//set the infrasrtucture as initialized
+		initialized = true;
 		
 	}
 	
@@ -69,6 +77,16 @@ public class BroadCastSyncManager {
 	 */
 	public void start()  throws BroadCastSyncException{
 		
+		if(!initialized) {
+			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
+		}
+		
+		if(started) {
+			BroadCastSyncException ex = exceptionFactory.getBroadCastSynAlreadyStarted();
+			log.error(ex.getLocalizedMessage(),ex);
+			throw ex;
+		}
+		
 		String start = "\r\n" + 
 				"   ___                   _______         __  ____             \r\n" + 
 				"  / _ )_______  ___ ____/ / ___/__ ____ / /_/ __/_ _____  ____\r\n" + 
@@ -78,9 +96,13 @@ public class BroadCastSyncManager {
 				"";
 		
 		log.info(start);
+		
+		log.info("started the theads");
 				
 		sequentializer.startDatagramSequentializer();
 		udpServer.startServer();
+		
+		started = true;
 		
 		log.info("started succesfully");
 	}
@@ -90,6 +112,10 @@ public class BroadCastSyncManager {
 	 */
 	public void shutdown() {
 		
+		if(!initialized) {
+			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
+		}
+		
 		log.info("shutdown BroadCastSyncManager");
 		
 		udpServer.shutdown();
@@ -97,29 +123,18 @@ public class BroadCastSyncManager {
 		
 		queue.clear();
 		
+		log.info("shutdown BroadCastSyncManager completed succesfully");
+		
 	}
 	
 	public static void main(String[] args) throws Exception {
 		BroadCastSyncManager manager = new BroadCastSyncManager();
 		
-		manager.init(manager.new TestListener());
+		manager.initialize(new MessageProcessorLog());
 		manager.start();
 		
 	}
 	
-	public class TestListener implements MessageReceivedListener{
-
-		@Override
-		public void onMessageReceived(MessageReceivedEvent event) {
-
-			log.info("message received");
-			log.info("address: "+event.getClientAddress());
-			log.info("name: "+event.getClientCanonicalHostName());
-			log.info("data: "+new String(event.getData()));			
-			
-		}
-		
-	}
 	
 	
 }

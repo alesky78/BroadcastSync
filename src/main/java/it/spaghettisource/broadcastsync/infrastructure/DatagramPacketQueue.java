@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 import java.util.LinkedList;
 
 /**
- * This class is responsible to store the DatagramPacket that offered by the {@link UdpServer} and pop by the {@link DatagramSequentializer}
+ * This class is responsible to store the DatagramPacket that are offered by the {@link UdpServer} and pop by the {@link DatagramSequentializer}
  * it is a FIFO so the first datagram arrived, will be the first processed
  * 
  * @author Alessandro D'Ottavio

@@ -1,7 +1,10 @@
 package it.spaghettisource.broadcastsync.exception;
 
 import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Locale;
 
+import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
 import it.spaghettisource.broadcastsync.i18n.I18NMessageHelper;
 
 /**
@@ -12,22 +15,37 @@ import it.spaghettisource.broadcastsync.i18n.I18NMessageHelper;
  */
 public class ExceptionFactory {
 
-	private static Object[] EMPTY_PARAMETERS = new Object[] {};
+	private static final Object[] EMPTY_PARAMETERS = new Object[] {};
 	
+	private BroadCastSyncConfig config;
 	private I18NMessageHelper messageHelper;
+	private Locale locale;
 	
-	public void setMessageHelper(I18NMessageHelper messageHelper) {
+
+	public ExceptionFactory(BroadCastSyncConfig config, I18NMessageHelper messageHelper) {
+		super();
+		this.config = config;
 		this.messageHelper = messageHelper;
+		this.locale = config.buildLocale();
+		
 	}
 	
 	public BroadCastSyncException getUnexpectedException(Throwable cause){		
-		return getException(cause, "exception.UnexpectedException", EMPTY_PARAMETERS);
+		return getException(cause, locale, "exception.UnexpectedException", EMPTY_PARAMETERS);
 	}
 	
-	public BroadCastSyncException geImpossibleStartDatagramSocket(SocketException cause){		
-		return getException(cause, "exception.server.impossibleStartDatagramSocket", EMPTY_PARAMETERS);
+	public BroadCastSyncException getBroadCastSynAlreadyStarted(){		
+		return getException(locale, "exception.broadCastSyn.alreadyStarted", EMPTY_PARAMETERS);
 	}
 	
+	
+	public BroadCastSyncException getImpossibleOpenDatagramSocket(SocketException cause, int socketPort){		
+		return getException(cause, locale, "exception.server.impossibleOpenDatagramSocket", new Object[] {socketPort});
+	}
+
+	public BroadCastSyncException getLocalHostNameCannotBeResolved(UnknownHostException cause){		
+		return getException(cause, locale, "exception.server.localHostNameCannotBeResolved", EMPTY_PARAMETERS);
+	}	
 	
 	/**
 	 * support method to create an exception
@@ -36,9 +54,10 @@ public class ExceptionFactory {
 	 * @param messageParameters
 	 * @return
 	 */
-	private BroadCastSyncException getException(String errorMessage,Object... messageParameters ){
+	private BroadCastSyncException getException(Locale locale, String errorMessage,Object... messageParameters ){
 		BroadCastSyncException ex = new BroadCastSyncException(errorMessage, messageParameters);
 		ex.setMessageHelper(messageHelper);
+		ex.setLocale(locale);
 		return ex;
 	}
 
@@ -50,9 +69,10 @@ public class ExceptionFactory {
 	 * @param messageParameters
 	 * @return
 	 */	
-	private BroadCastSyncException getException(Throwable cause,String errorMessage,Object... messageParameters ){
+	private BroadCastSyncException getException(Throwable cause,Locale locale,String errorMessage,Object... messageParameters ){
 		BroadCastSyncException ex = new BroadCastSyncException(cause,errorMessage, messageParameters);
 		ex.setMessageHelper(messageHelper);
+		ex.setLocale(locale);		
 		return ex;
 	}
 

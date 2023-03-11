@@ -1,9 +1,12 @@
 package it.spaghettisource.broadcastsync.infrastructure;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.PortUnreachableException;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import org.slf4j.Logger;
@@ -14,9 +17,10 @@ import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 
 /**
- * This class is responsible to receive the DatagramPacket 
+ * The UdpServer is the entry point for all the DatagramPacket received.
+ * It is responsible to open the DatagramSocket and verify that the socket can be properly be open
  * 
- * @author Alessandro
+ * @author Alessandro D'Ottavio
  * @version 1.0
  */
 public class UdpServer implements Runnable {
@@ -45,7 +49,7 @@ public class UdpServer implements Runnable {
 	@Override
 	public void run() {
 
-		log.debug("UdpServer started, address:"+serverAddress+" canonicalserverName:"+canonicalserverName);
+		log.info("UdpServer started, address:"+serverAddress+" canonicalserverName:"+canonicalserverName);
 		
 		while (!stopped) {
 			
@@ -59,10 +63,10 @@ public class UdpServer implements Runnable {
 				//filter the message send by itself
 				if(!messagePacket.getAddress().getHostAddress().equals(serverAddress)) {
 					//add the message in the queue and restart to listen for a new datagram
-					log.debug("message received");
+					log.debug("DatagramPacket received");
 					queue.offer(messagePacket);		
 				}else {
-					log.debug("message filtered out, send from this machine");
+					log.debug("DatagramPacket filtered out, send from this machine");
 				}
 				
 				
@@ -70,10 +74,21 @@ public class UdpServer implements Runnable {
 				log.info("UdpServer server interrupted");
                 break;
                 
-            }catch (Exception cause) {
+            }catch (PortUnreachableException cause) {
+            	//this error should never be received, the DatagramSocket is used only to receive message
+            	//it is never used to call and then received
 				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
-				log.error(ex.getMessage(),ex);
+				log.error(ex.getLocalizedMessage(),ex);
 				
+            }catch (SocketTimeoutException cause) {
+            	//this error should never be received, we don use time out on server side
+				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
+				log.error(ex.getLocalizedMessage(),ex);
+            	
+			} catch (IOException cause) {
+				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
+				log.error(ex.getLocalizedMessage(),ex);				 
+
 			}
 			
 		}
@@ -92,12 +107,12 @@ public class UdpServer implements Runnable {
 			serverSocket = new DatagramSocket(config.getServerPort());
 			
 		} catch (SocketException cause) {
-			BroadCastSyncException ex = exceptionFactory.geImpossibleStartDatagramSocket(cause);
-			log.error(ex.getMessage(),ex);
+			BroadCastSyncException ex = exceptionFactory.getImpossibleOpenDatagramSocket(cause,config.getServerPort());
+			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;
 		} catch (UnknownHostException cause) {
-			BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
-			log.error(ex.getMessage(),ex);
+			BroadCastSyncException ex = exceptionFactory.getLocalHostNameCannotBeResolved(cause);
+			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;
 		}
 		
@@ -109,7 +124,9 @@ public class UdpServer implements Runnable {
 	
 	public void shutdown() {
 		stopped = true;
-		thread.interrupt();
+		if(thread!=null) {
+			thread.interrupt();			
+		}
 	}
 	
 }

@@ -13,6 +13,7 @@ import it.spaghettisource.broadcastsync.i18n.I18NMessageHelper;
  */
 public class BroadCastSyncException extends RuntimeException {
 
+	protected Locale locale;
 	protected String errorMessage;  
 	protected Object[] messageParameters;
 	
@@ -33,13 +34,18 @@ public class BroadCastSyncException extends RuntimeException {
 	public void setMessageHelper(I18NMessageHelper messageHelper) {
 		this.messageHelper = messageHelper;
 	}
+	
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
 
 	@Override
 	public String getMessage(){		
 		return messageHelper.getFormattedMessageI18N(errorMessage, messageParameters);		 
 	}
 
-	public String getMessage(Locale locale){		
+	@Override
+	public String getLocalizedMessage() {		
 		return messageHelper.getFormattedMessageI18N(locale, errorMessage, messageParameters);
 	}
 		

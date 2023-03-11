@@ -10,10 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
-import it.spaghettisource.broadcastsync.events.MessageReceivedEvent;
-import it.spaghettisource.broadcastsync.events.MessageReceivedListener;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
+import it.spaghettisource.broadcastsync.message.MessageByteArray;
+import it.spaghettisource.broadcastsync.message.MessageProcessor;
 
 /**
  * the role of the DatagramSequentializer is to reorganize the raw data received and propose them to the listener.
@@ -37,17 +37,17 @@ public class DatagramSequentializer implements Runnable{
 	private ExceptionFactory exceptionFactory;
 	private DatagramPacketQueue queue;
 	
-	private MessageReceivedListener listener;
+	private MessageProcessor messageProcessor;
 	
 	private DatagramProtocol protocol;
 	
 	private Map<String,Payload> payloads;
 
-	public DatagramSequentializer(BroadCastSyncConfig config,ExceptionFactory exceptionFactory, DatagramPacketQueue queue, MessageReceivedListener listener){
+	public DatagramSequentializer(BroadCastSyncConfig config,ExceptionFactory exceptionFactory, DatagramPacketQueue queue, MessageProcessor messageProcessor){
 		this.config = config;
 		this.exceptionFactory = exceptionFactory;
 		this.queue = queue;
-		this.listener = listener;
+		this.messageProcessor = messageProcessor;
 		
 		protocol = new DatagramProtocol();
 		payloads = new HashMap<String, Payload>();
@@ -80,7 +80,7 @@ public class DatagramSequentializer implements Runnable{
                 
             }catch (Exception cause) {
 				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
-				log.error(ex.getMessage(),ex);
+				log.error(ex.getLocalizedMessage(),ex);
 				
 			}
 		}
@@ -123,8 +123,8 @@ public class DatagramSequentializer implements Runnable{
 				if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY) {
 					
 					log.debug("message "+messageId+" complete, total packets:"+payload.getTotalPackets());
-					MessageReceivedEvent event = new MessageReceivedEvent(payload.getData(), payload.getClientAddress(), payload.getClientCanonicalHostName());
-					listener.onMessageReceived(event);
+					MessageByteArray event = new MessageByteArray(payload.getData(), payload.getClientAddress(), payload.getClientCanonicalHostName());
+					messageProcessor.onMessageReceived(event);
 				}
 				
 			}
@@ -132,7 +132,7 @@ public class DatagramSequentializer implements Runnable{
 		}catch (Exception e) {
 			log.error("error pocessing the datagram",e);
 			
-			//if there is an error processing this message discard the payload, it is impossible rebuild the message
+			//if there is an error processing this message discard the payload, now is impossible rebuild the message
 			if(messageId!=null) {
 				payloads.remove(messageId);
 			}
@@ -166,7 +166,7 @@ public class DatagramSequentializer implements Runnable{
 	}
 
 	
-	public void startDatagramSequentializer()  throws BroadCastSyncException{
+	public void startDatagramSequentializer() throws BroadCastSyncException{
 		stopped = false;
 		thread = new Thread(this);
 		thread.setName("DatagramSequentializer");
@@ -176,7 +176,9 @@ public class DatagramSequentializer implements Runnable{
 	
 	public void shutdown() {
 		stopped = true;
-		thread.interrupt();
+		if(thread!=null) {
+			thread.interrupt();			
+		}
 	}
 
 	

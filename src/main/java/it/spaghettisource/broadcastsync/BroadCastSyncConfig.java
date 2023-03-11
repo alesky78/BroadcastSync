@@ -1,5 +1,7 @@
 package it.spaghettisource.broadcastsync;
 
+import java.util.Locale;
+
 /**
  * Configuration used by the BroadCastSync
  * 
@@ -9,12 +11,23 @@ package it.spaghettisource.broadcastsync;
  */
 public class BroadCastSyncConfig {
 
+	//server
 	private int serverPort;
-	private int datagramPacketBufferSize;
+	
+	//client
 	private String broadcastAddress;
+	
+	//protocol
+	private int datagramPacketBufferSize;
+	
+	//DatagramSequentializer
 	private long payloadExpirationTime;
-	private long cleaningExpiredMessageLoopTime;	
-
+	private long cleaningExpiredMessageLoopTime;
+	
+	//i18n for the messages, like exception messages
+	private String language;	
+	private String country;	
+	
 	public BroadCastSyncConfig() {
 		super();
 	}
@@ -58,6 +71,26 @@ public class BroadCastSyncConfig {
 	public void setCleaningExpiredMessageLoopTime(long cleaningExpiredMessageLoopTime) {
 		this.cleaningExpiredMessageLoopTime = cleaningExpiredMessageLoopTime;
 	}
+	
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;	
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	
+	public Locale buildLocale() {
+		return new Locale(language, country);
+	}
 
 	public static BroadCastSyncConfig buildDefault() {
 		BroadCastSyncConfig config = new BroadCastSyncConfig();
@@ -66,6 +99,9 @@ public class BroadCastSyncConfig {
 		config.broadcastAddress = "255.255.255.255";
 		config.payloadExpirationTime = 3000;
 		config.cleaningExpiredMessageLoopTime = 6000;
+		
+		config.language = Locale.getDefault().getLanguage();
+		config.country = Locale.getDefault().getCountry();
 
 		return config;
 	}
