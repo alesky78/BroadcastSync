@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
+import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.i18n.FileMessageHelper;
 import it.spaghettisource.broadcastsync.i18n.FileMessageRepository;
@@ -88,14 +89,14 @@ public class BroadCastSyncManager {
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void start()  throws BroadCastSyncException{
+	public void start() throws BroadCastSyncRuntimeException{
 		
 		if(!initialized) {
 			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
 		}
 		
 		if(started) {
-			BroadCastSyncException ex = exceptionFactory.getBroadCastSynAlreadyStarted();
+			BroadCastSyncRuntimeException ex = exceptionFactory.getBroadCastSynAlreadyStarted();
 			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;
 		}
@@ -112,8 +113,9 @@ public class BroadCastSyncManager {
 		
 		try {
 			sequentializer.startDatagramSequentializer();
-			udpServer.startServer();			
-		}catch (Exception cause) {
+			udpServer.startServer();
+			
+		}catch (BroadCastSyncRuntimeException cause) {
 			//if there is an error stop the thread started if any			
 			sequentializer.shutdown();
 			queue.clear();

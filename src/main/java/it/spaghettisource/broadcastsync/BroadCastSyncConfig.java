@@ -5,7 +5,7 @@ import java.util.Locale;
 /**
  * Configuration used by the BroadCastSync
  * 
- * @author Alessandro
+ * @author Alessandro D'Ottavio
  * @version 1.0 - base version
  *
  */

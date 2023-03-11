@@ -10,7 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
-import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
+import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionDataProtocolNotRespected;
+import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.message.MessageByteArray;
 import it.spaghettisource.broadcastsync.message.MessageProcessor;
@@ -39,7 +40,7 @@ public class DatagramSequentializer implements Runnable{
 	
 	private MessageProcessor messageProcessor;
 	
-	private DatagramProtocol protocol;
+	private DatagramPacketDataProtocol protocol;
 	
 	private Map<String,Payload> payloads;
 
@@ -49,7 +50,7 @@ public class DatagramSequentializer implements Runnable{
 		this.queue = queue;
 		this.messageProcessor = messageProcessor;
 		
-		protocol = new DatagramProtocol();
+		protocol = new DatagramPacketDataProtocol(exceptionFactory);
 		payloads = new HashMap<String, Payload>();
 }
 	
@@ -79,7 +80,7 @@ public class DatagramSequentializer implements Runnable{
                 break;
                 
             }catch (Exception cause) {
-				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
+            	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 				log.error(ex.getLocalizedMessage(),ex);
 				
 			}
@@ -99,7 +100,7 @@ public class DatagramSequentializer implements Runnable{
 		String messageId = null;
 		
 		try {
-			protocol.analize(datagram);
+			protocol.analyzed(datagram);
 			
 			messageId = protocol.getMessageId();
 			Payload payload = payloads.get(messageId); 
@@ -129,10 +130,12 @@ public class DatagramSequentializer implements Runnable{
 				
 			}
 
-		}catch (Exception e) {
-			log.error("error pocessing the datagram",e);
+		}catch (BroadCastSyncExceptionDataProtocolNotRespected cause) {
+			log.error(cause.getLocalizedMessage(),cause);
 			
+		}catch (Exception e) {
 			//if there is an error processing this message discard the payload, now is impossible rebuild the message
+			log.error("unexpected error processing this datagram, payload discarded",e);
 			if(messageId!=null) {
 				payloads.remove(messageId);
 			}
@@ -166,7 +169,7 @@ public class DatagramSequentializer implements Runnable{
 	}
 
 	
-	public void startDatagramSequentializer() throws BroadCastSyncException{
+	public void startDatagramSequentializer() throws BroadCastSyncRuntimeException{
 		stopped = false;
 		thread = new Thread(this);
 		thread.setName("DatagramSequentializer");

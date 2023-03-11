@@ -6,27 +6,27 @@ import java.util.Locale;
 import it.spaghettisource.broadcastsync.i18n.I18NMessageHelper;
 
 /**
- * Superclass of all the checked exceptions
+ * Superclass of all the unchecked exceptions
  * 
  * @author Alessandro D'Ottavio
  * @version 1.0
  */
-public class BroadCastSyncException extends Exception {
+public class BroadCastSyncRuntimeException extends RuntimeException {
 
 	protected Locale locale;
 	protected String errorMessage;  
 	protected Object[] messageParameters;
 	
 	protected I18NMessageHelper messageHelper;
-
-	public BroadCastSyncException(String errorMessage,Object...  messageParameters ) {
-		super();
+	
+	public BroadCastSyncRuntimeException(Throwable cause,String errorMessage,Object... messageParameters ) {
+		super(cause);
 		this.errorMessage = errorMessage;
 		this.messageParameters = messageParameters;
-	}	
-	
-	public BroadCastSyncException(Throwable cause,String errorMessage,Object... messageParameters ) {
-		super(cause);
+	}
+
+	public BroadCastSyncRuntimeException(String errorMessage,Object...  messageParameters ) {
+		super();
 		this.errorMessage = errorMessage;
 		this.messageParameters = messageParameters;
 	}

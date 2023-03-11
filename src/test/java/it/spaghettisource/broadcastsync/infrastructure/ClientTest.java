@@ -28,7 +28,7 @@ public class ClientTest {
 		broadcastAddress = InetAddress.getByName(config.getBroadcastAddress());		
 		String message = "Un primo esempio di test non lungo anzi lungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungolungo";
 		
-		DatagramPacket[] packets = DatagramProtocol.buildDatagram(broadcastAddress, config.getServerPort(), config.getDatagramPacketBufferSize(), MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY, message.getBytes());
+		DatagramPacket[] packets = DatagramPacketDataProtocol.buildDatagramPacket(broadcastAddress, config.getServerPort(), config.getDatagramPacketBufferSize(), MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY, message.getBytes());
 		
 		//send the messages
 		InetAddress clientAddress = InetAddress.getLocalHost();

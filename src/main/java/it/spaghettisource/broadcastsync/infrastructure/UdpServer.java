@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
+import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 
 /**
@@ -78,16 +79,16 @@ public class UdpServer implements Runnable {
             }catch (PortUnreachableException cause) {
             	//this error should never be received, the DatagramSocket is used only to receive message
             	//it is never used to call and then received
-				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
+            	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 				log.error(ex.getLocalizedMessage(),ex);
 				
             }catch (SocketTimeoutException cause) {
             	//this error should never be received, we don use time out on server side
-				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
+            	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 				log.error(ex.getLocalizedMessage(),ex);
             	
 			} catch (IOException cause) {
-				BroadCastSyncException ex = exceptionFactory.getUnexpectedException(cause);
+				BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
 				log.error(ex.getLocalizedMessage(),ex);				 
 
 			}
@@ -97,7 +98,7 @@ public class UdpServer implements Runnable {
 		
 	}
 	
-	public void startServer() throws BroadCastSyncException{
+	public void startServer() throws BroadCastSyncRuntimeException{
 		try {
 			stopped = false;
 			
@@ -108,11 +109,11 @@ public class UdpServer implements Runnable {
 			serverSocket = new DatagramSocket(config.getServerPort());
 			
 		} catch (SocketException cause) {
-			BroadCastSyncException ex = exceptionFactory.getImpossibleOpenDatagramSocket(cause,config.getServerPort());
+			BroadCastSyncRuntimeException ex = exceptionFactory.getImpossibleOpenDatagramSocket(cause,config.getServerPort());
 			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;
 		} catch (UnknownHostException cause) {
-			BroadCastSyncException ex = exceptionFactory.getLocalHostNameCannotBeResolved(cause);
+			BroadCastSyncRuntimeException ex = exceptionFactory.getLocalHostNameCannotBeResolved(cause);
 			log.error(ex.getLocalizedMessage(),ex);
 			throw ex;
 		}
