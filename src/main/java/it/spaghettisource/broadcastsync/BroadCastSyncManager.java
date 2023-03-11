@@ -1,15 +1,19 @@
 package it.spaghettisource.broadcastsync;
 
+import java.io.Serializable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncException;
+import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionSerializeData;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.i18n.FileMessageHelper;
 import it.spaghettisource.broadcastsync.i18n.FileMessageRepository;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramPacketQueue;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramSequentializer;
+import it.spaghettisource.broadcastsync.infrastructure.UdpClient;
 import it.spaghettisource.broadcastsync.infrastructure.UdpServer;
 import it.spaghettisource.broadcastsync.processor.MessageProcessor;
 import it.spaghettisource.broadcastsync.processor.MessageProcessorLog;
@@ -27,6 +31,8 @@ public class BroadCastSyncManager {
 	private DatagramPacketQueue queue;
 	private DatagramSequentializer sequentializer;
 	private UdpServer udpServer;
+	
+	private UdpClient udpClient;
 	
 	private BroadCastSyncConfig configuration;
 	private ExceptionFactory exceptionFactory;
@@ -78,6 +84,9 @@ public class BroadCastSyncManager {
 		sequentializer = new DatagramSequentializer(configuration, exceptionFactory, queue, messageProcessor);
 		udpServer = new UdpServer(configuration, exceptionFactory,queue);
 		
+		//create the client infrastructure
+		udpClient = new UdpClient(config, exceptionFactory);
+		
 		//set the infrasrtucture as initialized
 		initialized = true;
 		
@@ -89,7 +98,7 @@ public class BroadCastSyncManager {
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void start() throws BroadCastSyncRuntimeException{
+	public void startServer() throws BroadCastSyncRuntimeException{
 		
 		if(!initialized) {
 			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
@@ -134,7 +143,7 @@ public class BroadCastSyncManager {
 	/**
 	 * stop the server infrastructure: 
 	 */
-	public void shutdown() {
+	public void shutdownServer() {
 		
 		if(!initialized) {
 			throw new IllegalStateException("the infrastructure BroadCastSync is not initialized, call the method initialize() first");
@@ -150,6 +159,55 @@ public class BroadCastSyncManager {
 		
 	}
 	
+	
+	/**
+	 * Send a byte[] on the networks
+	 * 
+	 * @param data
+	 * @throws BroadCastSyncRuntimeException
+	 */
+	public void sendMessage(byte[] data) throws BroadCastSyncRuntimeException{
+		udpClient.sendMessage(data);
+	}
+
+	/**
+	 * Send a String on the networks, the string are deserialized/serialized in UTF-8
+	 * 
+	 * @param data
+	 * @throws BroadCastSyncRuntimeException
+	 */
+	public void sendMessage(String data) throws BroadCastSyncRuntimeException{
+		udpClient.sendMessage(data);
+	}
+	
+	/**
+	 * Send a java Object that extends Serializable on the networks
+	 * There are several limits to consider when sending a serialized object in a byte array from one application and deserializing it in another:
+	 * 
+	 * Class version: 
+	 * if the version of the class being deserialized is different from the version of the class that was serialized, errors may occur during deserialization. 
+	 * It is important to ensure that the class versions are compatible.
+	 * 
+	 * Data types: 
+	 * if the data types of the fields in the serialized class are not compatible with the data types of the fields in the deserialized class, errors may occur during deserialization. 
+	 * For example, if a field in the serialized class is of type long and the corresponding field in the deserialized class is of type int, an error may occur.
+	 * 
+	 * Java version: 
+	 * if the application deserializing the object is running on a different version of Java than the application that serialized the object, compatibility issues may arise.
+	 * 
+	 * Character encoding: 
+	 * if the serialized class contains strings or other character-based data, it is important to ensure that the character encodings are compatible between the two applications.
+	 * 
+	 * 
+	 * @param object
+	 * @throws BroadCastSyncRuntimeException
+	 * @throws BroadCastSyncExceptionSerializeData
+	 */
+	public <T extends Serializable> void sendMessage(T object) throws BroadCastSyncRuntimeException, BroadCastSyncExceptionSerializeData{
+		udpClient.sendMessage(object);
+	}
+
+
 	public static void main(String[] args) throws Exception {
 		BroadCastSyncManager manager = new BroadCastSyncManager();
 		
@@ -157,7 +215,11 @@ public class BroadCastSyncManager {
 		conf.setDevelopMode(true);
 		
 		manager.initialize(conf, new MessageProcessorLog());
-		manager.start();
+		manager.startServer();
+		
+		manager.sendMessage("ciao stringa byte array".getBytes());
+		manager.sendMessage("ciao stringa");
+		manager.sendMessage(new Integer(9999999));
 		
 	}
 	

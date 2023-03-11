@@ -38,6 +38,7 @@ public class MessageProcessorLog implements MessageProcessor {
 		log.info("message received");
 		log.info("address: "+message.getClientAddress());
 		log.info("name: "+message.getClientCanonicalHostName());
+		log.info("class: "+message.getData().getClass());		
 		log.info("data: "+message.getData());	
 		
 	}

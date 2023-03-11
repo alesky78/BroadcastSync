@@ -21,7 +21,7 @@ import it.spaghettisource.broadcastsync.serializer.ObjectSerializer;
 import it.spaghettisource.broadcastsync.serializer.StringSeralizer;
 
 /**
- * The UdpClient is the able to send message on the network.
+ * The UdpClient is able to send message on the network converting them automatically to the BroadCastSync data protocol
  * 
  * @author Alessandro D'Ottavio
  * @version 1.0
