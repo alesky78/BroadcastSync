@@ -253,17 +253,16 @@ public class BroadCastSyncManager {
 		manager.initialize(conf, heartBeatFactory, new MessageHandlerLog());
 		manager.start();
 
-//		manager.sendMessage("ciao stringa byte array".getBytes());
-//		manager.sendMessage("ciao stringa");
-//		manager.sendMessage(new Integer(9999999));			
-//
-//		manager.shutdown();
-//		Thread.sleep(1000);
-//		manager.start();		
-//		
-//		manager.sendMessage("ciao stringa byte array".getBytes());
-//		manager.sendMessage("ciao stringa");
-//		manager.sendMessage(new Integer(9999999));
+		manager.sendMessage("ciao stringa byte array".getBytes());
+		manager.sendMessage("ciao stringa");
+		manager.sendMessage(new Integer(9999999));			
+
+		manager.shutdown();
+		manager.start();		
+		
+		manager.sendMessage("ciao stringa byte array".getBytes());
+		manager.sendMessage("ciao stringa");
+		manager.sendMessage(new Integer(9999999));
 		
 	}
 	

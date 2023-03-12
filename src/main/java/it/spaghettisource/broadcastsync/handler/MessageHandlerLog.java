@@ -23,7 +23,7 @@ public class MessageHandlerLog implements MessageHandler {
 	
 	@Override
 	public void onMessageReceived(MessageByteArray message) {
-		log.info("message received");
+		log.info("message byte array received");
 		log.info("address: "+message.getClientAddress());
 		log.info("name: "+message.getClientCanonicalHostName());
 		log.info("data: "+new String(message.getData()));			
@@ -31,7 +31,7 @@ public class MessageHandlerLog implements MessageHandler {
 
 	@Override
 	public void onMessageReceived(MessageString message) {
-		log.info("message received");
+		log.info("message string received");
 		log.info("address: "+message.getClientAddress());
 		log.info("name: "+message.getClientCanonicalHostName());
 		log.info("data: "+message.getData());			
@@ -39,7 +39,7 @@ public class MessageHandlerLog implements MessageHandler {
 
 	@Override
 	public void onMessageReceived(MessageObject message) {
-		log.info("message received");
+		log.info("message object received");
 		log.info("address: "+message.getClientAddress());
 		log.info("name: "+message.getClientCanonicalHostName());
 		log.info("class: "+message.getData().getClass());		

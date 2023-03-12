@@ -90,29 +90,29 @@ public class UdpClient {
 	}
 	
 	public void sendHeartBeatFlag() throws BroadCastSyncRuntimeException{
-		sendFlagMessage(MessageType.MESSAGE_TYPE_CMD_HEARTBEAT);
+		sendFlagMessage(MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
 	}
 	
 	public void sendHeartBeatData(byte[] data) throws BroadCastSyncRuntimeException{
-		sendMessage(data, MessageType.MESSAGE_TYPE_CMD_HEARTBEAT);
+		sendMessage(data, MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
 	}	
 
 	public void sendMessage(byte[] data) throws BroadCastSyncRuntimeException{
-		sendMessage(data, MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY);
+		sendMessage(data, MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY,broadcastAddress);
 	}
 
 	public void sendMessage(String data) throws BroadCastSyncRuntimeException{
-		sendMessage(stringSeralizer.serialize(data), MessageType.MESSAGE_TYPE_DATA_UTF8_STRING);
+		sendMessage(stringSeralizer.serialize(data), MessageType.MESSAGE_TYPE_DATA_UTF8_STRING,broadcastAddress);
 	}
 	
 	public <T extends Serializable> void sendMessage(T object) throws BroadCastSyncRuntimeException, BroadCastSyncExceptionSerializeData{
-		sendMessage(objectSerializer.serialize(object), MessageType.MESSAGE_TYPE_DATA_JAVA_OBJECT);
+		sendMessage(objectSerializer.serialize(object), MessageType.MESSAGE_TYPE_DATA_JAVA_OBJECT,broadcastAddress);
 	}
 
-	private void sendFlagMessage(int messageType) throws BroadCastSyncRuntimeException{
+	private void sendFlagMessage(int messageType,InetAddress address) throws BroadCastSyncRuntimeException{
 		
 		//prepare the packets
-		DatagramPacket datagramPacket = DatagramPacketDataProtocol.buildCommandDatagramPacket(broadcastAddress, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType);
+		DatagramPacket datagramPacket = DatagramPacketDataProtocol.buildCommandDatagramPacket(address, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType);
 		
 		try {
 
@@ -133,10 +133,10 @@ public class UdpClient {
 					
 	}	
 	
-	private void sendMessage(byte[] data, int messageType) throws BroadCastSyncRuntimeException{
+	private void sendMessage(byte[] data, int messageType,InetAddress address) throws BroadCastSyncRuntimeException{
 	
 		//prepare the packets
-		DatagramPacket[] packets = DatagramPacketDataProtocol.buildDatagramPacket(broadcastAddress, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType, data);
+		DatagramPacket[] packets = DatagramPacketDataProtocol.buildDatagramPacket(address, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType, data);
 		
 		try {
 

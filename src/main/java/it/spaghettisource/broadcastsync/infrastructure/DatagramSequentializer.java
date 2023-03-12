@@ -128,7 +128,7 @@ public class DatagramSequentializer implements Runnable{
 	 * 
 	 * @param datagram
 	 */
-	private void process(DatagramPacket datagram) {
+	protected void process(DatagramPacket datagram) {
 		
 		log.debug("process message");
 		

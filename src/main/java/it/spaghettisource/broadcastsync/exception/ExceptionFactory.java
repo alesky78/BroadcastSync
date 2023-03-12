@@ -53,7 +53,7 @@ public class ExceptionFactory {
 	}	
 	
 	public BroadCastSyncExceptionDataProtocolNotRespected getBroadCastSyncExceptionDatagramDataProtocolNotRespected(Exception cause) {
-		BroadCastSyncExceptionDataProtocolNotRespected ex = new BroadCastSyncExceptionDataProtocolNotRespected(cause, "exception.datagram.protocolNotRespected", EMPTY_PARAMETERS);
+		BroadCastSyncExceptionDataProtocolNotRespected ex = new BroadCastSyncExceptionDataProtocolNotRespected(cause, "exception.datagram.dataProtocol.NotRespected", EMPTY_PARAMETERS);
 		ex.setMessageHelper(messageHelper);
 		ex.setLocale(locale);
 		return ex;

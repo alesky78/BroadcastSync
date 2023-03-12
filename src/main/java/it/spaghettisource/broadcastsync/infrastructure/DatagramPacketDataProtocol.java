@@ -213,7 +213,7 @@ public class DatagramPacketDataProtocol {
 		return packet;
 	}	
 	
-	private static String deserializeUUID(byte[] uuidBytes) {
+	public static String deserializeUUID(byte[] uuidBytes) {
 		long mostSignificantBits = 0;
 		long leastSignificantBits = 0;
 		for (int i = 0; i < 8; i++) {
@@ -224,7 +224,7 @@ public class DatagramPacketDataProtocol {
 
 	}
 	
-	private static byte[] serializeUUID(UUID uuid) {
+	public static byte[] serializeUUID(UUID uuid) {
 		long mostSignificantBits = uuid.getMostSignificantBits();
 		long leastSignificantBits = uuid.getLeastSignificantBits();
 		byte[] uuidByteArray = new byte[16];

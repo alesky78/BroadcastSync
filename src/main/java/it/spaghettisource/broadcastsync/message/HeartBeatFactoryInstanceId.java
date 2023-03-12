@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
  * Implementation of that send a fixed String data,
  * 
  * This is used for example in the case you want to associate an ID for each instance that participate in the BroadCastSync network
+ * in this case when the HeartBeat message arrive to the other clients, it brings also this extra information
  * 
  * @author Alessandro D'Ottavio
  * @version 1.0
