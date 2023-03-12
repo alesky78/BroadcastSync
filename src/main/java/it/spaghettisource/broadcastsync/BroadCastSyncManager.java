@@ -18,6 +18,9 @@ import it.spaghettisource.broadcastsync.infrastructure.DatagramSequentializer;
 import it.spaghettisource.broadcastsync.infrastructure.HeartbeatEmitter;
 import it.spaghettisource.broadcastsync.infrastructure.UdpClient;
 import it.spaghettisource.broadcastsync.infrastructure.UdpServer;
+import it.spaghettisource.broadcastsync.message.HeartBeatFactory;
+import it.spaghettisource.broadcastsync.message.HeartBeatFactoryInstanceId;
+import it.spaghettisource.broadcastsync.message.HeartBeatFactoryCommand;
 
 /**
  * The BroadCastSyncManager is responsible to initialize the infrastructure and start it
@@ -33,6 +36,7 @@ public class BroadCastSyncManager {
 	private DatagramSequentializer sequentializer;
 	private UdpServer udpServer;
 	
+	private HeartBeatFactory heartBeatFactor;
 	private HeartbeatEmitter heartbeatEmitter;
 	
 	private UdpClient udpClient;
@@ -50,14 +54,17 @@ public class BroadCastSyncManager {
 	}
 	
 	
-	/**
-	 * initialize the infrastructure but don't start the server
-	 * using the default configuration
-	 * 
-	 * @throws BroadCastSyncException
-	 */
+
 	public void initialize(MessageHandler messageProcessor){
-		this.initialize(BroadCastSyncConfig.buildDefault(), messageProcessor);
+		this.initialize(BroadCastSyncConfig.buildDefault(),new HeartBeatFactoryCommand(), messageProcessor);
+	}
+	
+	public void initialize(BroadCastSyncConfig configuration, MessageHandler messageProcesso){
+		this.initialize(configuration,new HeartBeatFactoryCommand(), messageProcesso);
+	}
+	
+	public void initialize(HeartBeatFactory heartBeatFactory, MessageHandler messageProcessor){
+		this.initialize(BroadCastSyncConfig.buildDefault(),heartBeatFactory, messageProcessor);		
 	}
 
 	/**
@@ -66,12 +73,13 @@ public class BroadCastSyncManager {
 	 * 
 	 * @throws BroadCastSyncException
 	 */
-	public void initialize(BroadCastSyncConfig config, MessageHandler messageProcessor){
+	public void initialize(BroadCastSyncConfig configuration, HeartBeatFactory heartBeatFactory, MessageHandler messageProcessor){
 		
 		log.info("init BroadCastSyncManager");
 		
-		//load default configuration
-		configuration = config;
+		//store the configuration
+		this.configuration = configuration;
+		this.heartBeatFactor = heartBeatFactory;		
 		
 		//prepare the i18n messaged
 		FileMessageRepository exceptionMessageRepository = new FileMessageRepository();
@@ -84,12 +92,13 @@ public class BroadCastSyncManager {
 		
 		//create the infrastructure
 		queue = new DatagramPacketQueue();
-		sequentializer = new DatagramSequentializer(configuration, exceptionFactory, queue, messageProcessor);
+		sequentializer = new DatagramSequentializer(configuration, exceptionFactory, queue, heartBeatFactor, messageProcessor);
 		udpServer = new UdpServer(configuration, exceptionFactory,queue);
 		
-		udpClient = new UdpClient(config, exceptionFactory);
+		udpClient = new UdpClient(configuration, exceptionFactory);
 		
-		heartbeatEmitter = new HeartbeatEmitter(config, exceptionFactory, udpClient);
+
+		heartbeatEmitter = new HeartbeatEmitter(configuration, heartBeatFactor, exceptionFactory, udpClient);
 		
 		//set the infrasrtucture as initialized
 		initialized = true;
@@ -135,10 +144,16 @@ public class BroadCastSyncManager {
 			}
 			
 		}catch (BroadCastSyncRuntimeException cause) {
-			//if there is an error stop the thread started if any			
+			//if there is an error stop the thread started			
+			if(configuration.isEnableHeartbeat()){
+				heartbeatEmitter.shutdown();
+			}
+			
+			udpClient.shutdown();
+			
+			udpServer.shutdown();
 			sequentializer.shutdown();
 			queue.clear();
-			udpServer.shutdown();
 			
 			log.error("emergency shutdown, all the started thread are interrupted",cause);
 			throw cause;
@@ -233,16 +248,18 @@ public class BroadCastSyncManager {
 		conf.setDevelopMode(true);
 		conf.setEnableHeartbeat(true);
 		
-		manager.initialize(conf, new MessageHandlerLog());
+		HeartBeatFactory heartBeatFactory = new HeartBeatFactoryInstanceId("ID instance");
+		
+		manager.initialize(conf, heartBeatFactory, new MessageHandlerLog());
 		manager.start();
 
-		manager.sendMessage("ciao stringa byte array".getBytes());
-		manager.sendMessage("ciao stringa");
-		manager.sendMessage(new Integer(9999999));			
-
-		manager.shutdown();
-		Thread.sleep(1000);
-		manager.start();		
+//		manager.sendMessage("ciao stringa byte array".getBytes());
+//		manager.sendMessage("ciao stringa");
+//		manager.sendMessage(new Integer(9999999));			
+//
+//		manager.shutdown();
+//		Thread.sleep(1000);
+//		manager.start();		
 //		
 //		manager.sendMessage("ciao stringa byte array".getBytes());
 //		manager.sendMessage("ciao stringa");

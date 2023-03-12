@@ -16,6 +16,8 @@ import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionDeserial
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.handler.MessageHandler;
+import it.spaghettisource.broadcastsync.message.HeartBeat;
+import it.spaghettisource.broadcastsync.message.HeartBeatFactory;
 import it.spaghettisource.broadcastsync.message.MessageByteArray;
 import it.spaghettisource.broadcastsync.message.MessageObject;
 import it.spaghettisource.broadcastsync.message.MessageString;
@@ -48,14 +50,17 @@ public class DatagramSequentializer implements Runnable{
 	private MessageHandler messageHandler;
 	private DatagramPacketDataProtocol protocol;
 	
+	private HeartBeatFactory heartBeatFactory;
+	
 	private StringSeralizer stringDeseralizer;
 	private ObjectSerializer<Serializable> objectDeseralizer;
 	
-	public DatagramSequentializer(BroadCastSyncConfig config,ExceptionFactory exceptionFactory, DatagramPacketQueue queue, MessageHandler messageProcessor){
+	public DatagramSequentializer(BroadCastSyncConfig config,ExceptionFactory exceptionFactory, DatagramPacketQueue queue, HeartBeatFactory heartBeatFactory, MessageHandler messageProcessor){
 		this.config = config;
 		this.exceptionFactory = exceptionFactory;
 		this.queue = queue;
 		this.messageHandler = messageProcessor;
+		this.heartBeatFactory = heartBeatFactory;
 		
 		protocol = new DatagramPacketDataProtocol(exceptionFactory);
 		payloads = new HashMap<String, Payload>();
@@ -180,7 +185,11 @@ public class DatagramSequentializer implements Runnable{
 		
 		log.debug("message "+messageId+" complete, total packets:"+payload.getTotalPackets());
 		
-		if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY) {
+		if(payload.getMessageType() == MessageType.MESSAGE_TYPE_CMD_HEARTBEAT) {
+			HeartBeat heartBeat = heartBeatFactory.buildDeseralizeHeartBeat(payload.getClientAddress(), payload.getClientCanonicalHostName(), payload.getData());
+			messageHandler.onHeartBeatReceived(heartBeat);
+			
+		}else if(payload.getMessageType() == MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY) {
 			MessageByteArray message = new MessageByteArray(payload.getData(), payload.getClientAddress(), payload.getClientCanonicalHostName());
 			messageHandler.onMessageReceived(message);
 			
@@ -198,6 +207,9 @@ public class DatagramSequentializer implements Runnable{
 				
 				log.error("error deserializing the java object received",e);
 			}
+		}else {
+			log.error("recevied a message type not coded");
+			
 		}
 		
 		

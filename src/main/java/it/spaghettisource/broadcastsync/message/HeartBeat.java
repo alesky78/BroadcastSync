@@ -1,17 +1,18 @@
 package it.spaghettisource.broadcastsync.message;
 
 /**
- * base implementation of a Message received to store to common data
+ * interface extended by all the HeartBeat Messages
  * 
  * @author Alessandro D'Ottavio
  * @version 1.0
  */
-public abstract class MessageAbstract {
+public class HeartBeat {
 
 	protected final String clientAddress;
 	protected final String clientCanonicalHostName;
 	
-	public MessageAbstract(String clientAddress, String clientCanonicalHostName) {
+	
+	public HeartBeat(String clientAddress, String clientCanonicalHostName) {
 		super();
 		this.clientAddress = clientAddress;
 		this.clientCanonicalHostName = clientCanonicalHostName;
@@ -24,5 +25,6 @@ public abstract class MessageAbstract {
 	public String getClientCanonicalHostName() {
 		return clientCanonicalHostName;
 	}
+	
 	
 }

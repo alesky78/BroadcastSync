@@ -139,7 +139,7 @@ public class DatagramPacketDataProtocol {
 		int packetDataSize = datagramPacketBufferSize - 32;
 		int totalPackets = (int) Math.ceil((double) dataLength / packetDataSize);
 
-		// prepare all the datagrma
+		// prepare all the datagram
 		UUID uuid = UUID.randomUUID();
 		DatagramPacket[] packets = new DatagramPacket[totalPackets];
 		byte[] data;
@@ -172,6 +172,46 @@ public class DatagramPacketDataProtocol {
 		
 		return packets;
 	}
+	
+	/**
+	 * create a Command DatagramPacket, the command DatagramPacket usually don't have the data part
+	 * this Command DatagramPackets can be used for a multiple scope, for example an HeartBeat, and ECHO or an ACK
+	 * the information is sent by the msgType
+	 * 
+	 * @param address
+	 * @param port
+	 * @param datagramPacketBufferSize
+	 * @param msgType
+	 * @param dataByte to convert in DatagramPacket to be send on network
+	 * @return
+	 */
+	public static DatagramPacket buildCommandDatagramPacket(InetAddress address, int port, int datagramPacketBufferSize, int msgType) {
+				
+		// prepare the datagram
+		int totalPackets = 1;		
+		UUID uuid = UUID.randomUUID();
+		
+		byte[] data = new byte[32];
+		byte[] partialData;		
+	    
+	    System.arraycopy(serializeUUID(uuid), 0, data, 0, 16);	//fill messageID
+	    
+	    partialData = ByteBuffer.allocate(4).putInt(msgType).array(); //fill message type
+	    System.arraycopy(partialData, 0, data, 16, 4);
+	    
+	    partialData = ByteBuffer.allocate(4).putInt(totalPackets).array(); //fill total packets
+	    System.arraycopy(partialData, 0, data, 20, 4);
+	    
+	    partialData = ByteBuffer.allocate(4).putInt(0).array();	//fill sequence number
+	    System.arraycopy(partialData, 0, data, 24, 4);
+	    
+	    partialData = ByteBuffer.allocate(4).putInt(0).array(); //fill data amount
+	    System.arraycopy(partialData, 0, data, 28, 4);
+	       
+	    DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+		
+		return packet;
+	}	
 	
 	private static String deserializeUUID(byte[] uuidBytes) {
 		long mostSignificantBits = 0;

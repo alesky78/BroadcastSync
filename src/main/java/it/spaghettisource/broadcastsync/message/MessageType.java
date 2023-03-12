@@ -8,7 +8,8 @@ package it.spaghettisource.broadcastsync.message;
  */
 public class MessageType {
 
-	public final static int MESSAGE_TYPE_HEARTBEAT = 0;
+	public final static int MESSAGE_TYPE_CMD_HEARTBEAT = 0;
+	
 	public final static int MESSAGE_TYPE_DATA_BYTE_ARRAY = 1;
 	public final static int MESSAGE_TYPE_DATA_UTF8_STRING = 2;
 	public final static int MESSAGE_TYPE_DATA_JAVA_OBJECT = 3;	

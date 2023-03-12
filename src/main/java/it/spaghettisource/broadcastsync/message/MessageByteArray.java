@@ -6,7 +6,7 @@ package it.spaghettisource.broadcastsync.message;
  * @author Alessandro D'Ottavio
  * @version 1.0
  */
-public class MessageByteArray extends  MessageAbstract{
+public class MessageByteArray extends Message{
 	
 	private final byte[] data;
 

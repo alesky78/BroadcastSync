@@ -88,6 +88,14 @@ public class UdpClient {
 			clientSocket.close();
 		}
 	}
+	
+	public void sendHeartBeatFlag() throws BroadCastSyncRuntimeException{
+		sendFlagMessage(MessageType.MESSAGE_TYPE_CMD_HEARTBEAT);
+	}
+	
+	public void sendHeartBeatData(byte[] data) throws BroadCastSyncRuntimeException{
+		sendMessage(data, MessageType.MESSAGE_TYPE_CMD_HEARTBEAT);
+	}	
 
 	public void sendMessage(byte[] data) throws BroadCastSyncRuntimeException{
 		sendMessage(data, MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY);
@@ -100,6 +108,30 @@ public class UdpClient {
 	public <T extends Serializable> void sendMessage(T object) throws BroadCastSyncRuntimeException, BroadCastSyncExceptionSerializeData{
 		sendMessage(objectSerializer.serialize(object), MessageType.MESSAGE_TYPE_DATA_JAVA_OBJECT);
 	}
+
+	private void sendFlagMessage(int messageType) throws BroadCastSyncRuntimeException{
+		
+		//prepare the packets
+		DatagramPacket datagramPacket = DatagramPacketDataProtocol.buildCommandDatagramPacket(broadcastAddress, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType);
+		
+		try {
+
+			clientSocket.send(datagramPacket);
+
+		} catch (PortUnreachableException cause) {
+        	//this error should never be received, the DatagramSocket send messages on broadcast
+        	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
+			log.error(ex.getLocalizedMessage(),ex);
+			throw ex;			
+			
+        } catch (IOException cause) {
+        	BroadCastSyncRuntimeException ex = exceptionFactory.getUnexpectedException(cause);
+			log.error(ex.getLocalizedMessage(),ex);
+			throw ex;
+			
+		}
+					
+	}	
 	
 	private void sendMessage(byte[] data, int messageType) throws BroadCastSyncRuntimeException{
 	
@@ -123,10 +155,8 @@ public class UdpClient {
 			throw ex;
 			
 		}
-			
-		
-		
-		
+					
 	}
+	
 	
 }

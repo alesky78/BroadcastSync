@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import it.spaghettisource.broadcastsync.BroadCastSyncConfig;
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
+import it.spaghettisource.broadcastsync.message.HeartBeatFactory;
 
 /**
  * The HeartbeatEmitter is responsible to send the Heartbeat on the network.
@@ -22,12 +23,14 @@ public class HeartbeatEmitter implements Runnable{
 	
 	
 	private BroadCastSyncConfig config;
+	private HeartBeatFactory heartBeatFactor;
 	private ExceptionFactory exceptionFactory;
 	private UdpClient udpClient;
 	
-	public HeartbeatEmitter(BroadCastSyncConfig config,ExceptionFactory exceptionFactory, UdpClient udpClient) {
+	public HeartbeatEmitter(BroadCastSyncConfig config, HeartBeatFactory heartBeatFactor, ExceptionFactory exceptionFactory, UdpClient udpClient) {
 		super();
 		this.config = config;
+		this.heartBeatFactor = heartBeatFactor;
 		this.exceptionFactory = exceptionFactory;
 		this.udpClient = udpClient;
 	}
@@ -41,7 +44,15 @@ public class HeartbeatEmitter implements Runnable{
 			try {
 
 				//send hearbeat
-				udpClient.sendMessage("HeartBeat");
+				if(heartBeatFactor.isCommandHeartBeat()){
+					log.debug("sent heartbeat");
+					udpClient.sendHeartBeatFlag();
+					
+				}else {
+					byte[] data = heartBeatFactor.buildSerializeHeartBeat();
+					udpClient.sendHeartBeatData(data);
+					
+				}
 				
 				//wait till next hearbeat execution
 				Thread.sleep(config.getHeartbeatIntervalTimeMillis());
