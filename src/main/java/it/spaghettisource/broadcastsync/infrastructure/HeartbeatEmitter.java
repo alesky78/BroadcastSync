@@ -71,6 +71,7 @@ public class HeartbeatEmitter implements Runnable{
 	public void startHeartbeatEmitter() throws BroadCastSyncRuntimeException{
 		stopped = false;	
 		thread = new Thread(this);
+		thread.setDaemon(true);		
 		thread.setName("HeartbeatEmitter");	
 		thread.start();
 	}

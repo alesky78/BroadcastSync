@@ -268,6 +268,7 @@ public class DatagramSequentializer implements Runnable{
 	public void startDatagramSequentializer() throws BroadCastSyncRuntimeException{
 		stopped = false;		
 		thread = new Thread(this);
+		thread.setDaemon(true);		
 		thread.setName("DatagramSequentializer");
 		thread.start();
 	}

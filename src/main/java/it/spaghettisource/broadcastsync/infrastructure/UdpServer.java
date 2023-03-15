@@ -126,6 +126,7 @@ public class UdpServer implements Runnable {
 		
 		stopped = false;
 		thread = new Thread(this);
+		thread.setDaemon(true);
 		thread.setName("UdpServer");
 		thread.start();
 	}
