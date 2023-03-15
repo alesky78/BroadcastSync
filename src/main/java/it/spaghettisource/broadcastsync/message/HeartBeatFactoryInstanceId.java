@@ -1,6 +1,6 @@
 package it.spaghettisource.broadcastsync.message;
 
-import java.nio.charset.StandardCharsets;
+import it.spaghettisource.broadcastsync.serializer.StringSeralizer;
 
 /**
  * Implementation of that send a fixed String data,
@@ -14,10 +14,12 @@ import java.nio.charset.StandardCharsets;
 public class HeartBeatFactoryInstanceId implements HeartBeatFactory {
 
 	private String instanceId;
+	private StringSeralizer serializer;
 	
 	public HeartBeatFactoryInstanceId(String instanceId) {
 		super();
 		this.instanceId = instanceId;
+		this.serializer = new StringSeralizer(null);
 	}
 
 	@Override
@@ -26,13 +28,21 @@ public class HeartBeatFactoryInstanceId implements HeartBeatFactory {
 	}
 	
 	@Override
-	public byte[] buildSerializeHeartBeat() {
-		return instanceId.getBytes(StandardCharsets.UTF_8);
+	public byte[] buildSerializeHeartBeat() {		
+		return serializer.serialize(instanceId);
 	}
 
 	@Override
 	public HeartBeatString buildDeseralizeHeartBeat(String clientAddress, String clientCanonicalHostName, byte[] data) {
-		return new HeartBeatString(instanceId,clientAddress, clientCanonicalHostName);
+		
+		String caller = "";
+		try {
+			caller = serializer.deserialize(data);			
+		}catch (Exception e) {
+		}
+
+		
+		return new HeartBeatString(caller,clientAddress, clientCanonicalHostName);
 	}
 
 
