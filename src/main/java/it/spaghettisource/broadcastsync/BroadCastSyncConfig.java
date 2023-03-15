@@ -97,8 +97,8 @@ public class BroadCastSyncConfig {
 		return cleaningExpiredMessageIntervalTimeMillis;
 	}
 
-	public void setCleaningExpiredMessageIntervalTimeMillis(long cleaningExpiredMessageLoopTime) {
-		this.cleaningExpiredMessageIntervalTimeMillis = cleaningExpiredMessageLoopTime;
+	public void setCleaningExpiredMessageIntervalTimeMillis(long cleaningExpiredMessageIntervalTimeMillis) {
+		this.cleaningExpiredMessageIntervalTimeMillis = cleaningExpiredMessageIntervalTimeMillis;
 	}
 	
 	public boolean isEnableHeartbeat() {

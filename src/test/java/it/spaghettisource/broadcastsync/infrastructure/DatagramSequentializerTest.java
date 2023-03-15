@@ -1,5 +1,7 @@
 package it.spaghettisource.broadcastsync.infrastructure;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.DatagramPacket;
@@ -37,6 +39,9 @@ public class DatagramSequentializerTest {
 	@BeforeAll
 	public static void init() throws Exception {
 
+		//prepare the config
+		config = BroadCastSyncConfig.buildDefault();		
+		
 		//prepare the i18n messaged
 		FileMessageRepository exceptionMessageRepository = new FileMessageRepository();
 		exceptionMessageRepository.setMessageRepositoryBundleBaseName("i18n.exception-message");
@@ -47,7 +52,6 @@ public class DatagramSequentializerTest {
 		exceptionFactory = new ExceptionFactory(BroadCastSyncConfig.buildDefault(),exceptionMessageHelper);
 		datagramPacketDataProtocol = new DatagramPacketDataProtocol(exceptionFactory);
 		heartBeatFactoryCommand = new HeartBeatFactoryCommand();
-		config = BroadCastSyncConfig.buildDefault();
 		messageHandler = new MessageHandlerLog();
 
 		objectDeseralizer = new ObjectSerializer<Serializable>(exceptionFactory);
@@ -126,6 +130,36 @@ public class DatagramSequentializerTest {
 		method.setAccessible(true);
 		method.invoke(sequentializer,packet);			
 		
+	}
+
+	@DisplayName("clean_expiredMessage")
+	@Test	
+	public void clean_expiredMessage() throws Exception{
+		
+		int EXPIRATION_TIME = 100;
+		
+		
+		byte[] arr = new byte[256];
+		Arrays.fill(arr, (byte) 1);
+		
+		DatagramPacket[] DatagramPackets = DatagramPacketDataProtocol.buildDatagramPacket(address, 1234, 50, MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY, arr);
+		
+		//create a fake payload, now it is stored in the memoty of the squentializer
+		Payload payload = sequentializer.findPayloadOrBuildNewPayload(DatagramPackets[0], "message-Id-unit test clean_expiredMessage");
+				
+		
+		//set the config to be sure that the packed is considered expired
+		config.setPayloadExpirationTime(EXPIRATION_TIME);		
+		config.setCleaningExpiredMessageIntervalTimeMillis(EXPIRATION_TIME);
+
+		Thread.sleep(EXPIRATION_TIME*3);	//sleep little bit so we are sure all is expired	
+		
+		//call the method 
+		Method method = DatagramSequentializer.class.getDeclaredMethod("performCleaningIfNeeded",null);
+		method.setAccessible(true);
+		method.invoke(sequentializer);
+		
+		assertEquals(0, sequentializer.findAmountOfPendingPayload());
 	}
 
 }

@@ -15,7 +15,6 @@ public class Payload {
 	private int messageType;	
 	private long timeReceivedFirstChunk;
 
-	private boolean empty;
 	private PayloadChunk[] chunks;
 
 	public Payload(String clientAddress, String clientCanonicalHostName, int messageType, int totalPackets) {
@@ -25,18 +24,13 @@ public class Payload {
 		this.messageType = messageType;
 		this.totalPackets = totalPackets;
 		
-		empty = true;	//true if still any PayloadChunk are added to this Payload
-		chunks = new PayloadChunk[totalPackets];
+		//if we are building the payload we received a chunk
+		this.timeReceivedFirstChunk  = System.currentTimeMillis();
+				
+		this.chunks = new PayloadChunk[totalPackets];
 	}
 
-	public void addChunk(PayloadChunk chunk) {
-
-		//if this is the first chunk received related to payload
-		if(empty) {
-			timeReceivedFirstChunk  = System.currentTimeMillis();
-			empty = false;
-		}
-		
+	public void addChunk(PayloadChunk chunk) {		
 		chunks[chunk.getSequence()] = chunk;
 	}
 	

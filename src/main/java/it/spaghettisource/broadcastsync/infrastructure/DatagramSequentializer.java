@@ -67,8 +67,14 @@ public class DatagramSequentializer implements Runnable{
 		
 		stringDeseralizer = new StringSeralizer(exceptionFactory);
 		objectDeseralizer = new ObjectSerializer<Serializable>(exceptionFactory);
+		
+		lastCleaningLoopTime = System.currentTimeMillis();
 	}
 	
+	
+	public int findAmountOfPendingPayload() {
+		return payloads.size();
+	}
 	
 	/**
 	 * The run method represents the core of the DatagramSequentializer thread.
@@ -82,7 +88,6 @@ public class DatagramSequentializer implements Runnable{
 
 		log.info("DatagramSequentializer thread started");
 		
-		lastCleaningLoopTime = System.currentTimeMillis();
 		
 		while (!stopped) {
 			try {
@@ -92,11 +97,7 @@ public class DatagramSequentializer implements Runnable{
 				
 				process(datagram);
 				
-				//clean if is the moment
-				if((System.currentTimeMillis()-lastCleaningLoopTime)> config.getCleaningExpiredMessageIntervalTimeMillis()) {
-					cleanExpiredMessage();
-					lastCleaningLoopTime = System.currentTimeMillis();
-				}
+				performCleaningIfNeeded();
 				
 			}catch (InterruptedException e) {
 				log.info("DatagramSequentializer interrupted");
@@ -110,6 +111,7 @@ public class DatagramSequentializer implements Runnable{
 		}
 		
 	}
+
 
 	/**
 	 * The process() method receives a DatagramPacket containing a message and handles the analysis of the message, 
@@ -138,15 +140,7 @@ public class DatagramSequentializer implements Runnable{
 			protocol.analyzed(datagram);
 			
 			messageId = protocol.getMessageId();
-			Payload payload = payloads.get(messageId); 
-			
-			//this is a new message, add it in the queue
-			if(payload==null) {
-				InetAddress address = datagram.getAddress();
-				payload = new Payload(address.getHostAddress(), address.getCanonicalHostName(),protocol.getMessageType(), protocol.getTotalPackets());
-				
-				payloads.put(messageId, payload);
-			}
+			Payload payload = findPayloadOrBuildNewPayload(datagram, messageId);
 			
 			//add the chunk
 			PayloadChunk chunk = protocol.buildPayloadChunk();
@@ -173,6 +167,22 @@ public class DatagramSequentializer implements Runnable{
 		}
 
 	}
+
+
+
+	public Payload findPayloadOrBuildNewPayload(DatagramPacket datagram, String messageId) {
+		Payload payload = payloads.get(messageId); 
+		
+		//this is a new message, add it in the queue
+		if(payload==null) {
+			InetAddress address = datagram.getAddress();
+			payload = new Payload(address.getHostAddress(), address.getCanonicalHostName(),protocol.getMessageType(), protocol.getTotalPackets());
+			
+			payloads.put(messageId, payload);
+		}
+		return payload;
+	}
+	
 
 	/**
 	 * deserialize the message data based on the message type of the payload
@@ -212,15 +222,29 @@ public class DatagramSequentializer implements Runnable{
 			
 		}
 		
-		
-		
 	}
+	
+	
+	/**
+	 * in case the last cleaning execution is happened after the defined interval activate it
+	 */
+	protected void performCleaningIfNeeded() {
+		//clean if is the correct moment
+		long timePass = (System.currentTimeMillis()-lastCleaningLoopTime); 
+		
+		if(timePass > config.getCleaningExpiredMessageIntervalTimeMillis()) {
+			cleanExpiredMessage();
+			lastCleaningLoopTime = System.currentTimeMillis();
+		}
+	}	
 	
 	/**
 	 * clean the expired payload
 	 * 
 	 */
 	private void cleanExpiredMessage() {
+		
+		log.debug("cleanExpiredMessage process activated");
 		
 		ArrayList<String> expireds = new ArrayList<>();
 		
