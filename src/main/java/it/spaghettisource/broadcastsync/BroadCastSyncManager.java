@@ -10,7 +10,6 @@ import it.spaghettisource.broadcastsync.exception.BroadCastSyncExceptionSerializ
 import it.spaghettisource.broadcastsync.exception.BroadCastSyncRuntimeException;
 import it.spaghettisource.broadcastsync.exception.ExceptionFactory;
 import it.spaghettisource.broadcastsync.handler.MessageHandler;
-import it.spaghettisource.broadcastsync.handler.MessageHandlerLog;
 import it.spaghettisource.broadcastsync.i18n.FileMessageHelper;
 import it.spaghettisource.broadcastsync.i18n.FileMessageRepository;
 import it.spaghettisource.broadcastsync.infrastructure.DatagramPacketQueue;
@@ -19,11 +18,38 @@ import it.spaghettisource.broadcastsync.infrastructure.HeartbeatEmitter;
 import it.spaghettisource.broadcastsync.infrastructure.UdpClient;
 import it.spaghettisource.broadcastsync.infrastructure.UdpServer;
 import it.spaghettisource.broadcastsync.message.HeartBeatFactory;
-import it.spaghettisource.broadcastsync.message.HeartBeatFactoryInstanceId;
 import it.spaghettisource.broadcastsync.message.HeartBeatFactoryCommand;
 
 /**
  * The BroadCastSyncManager is responsible to initialize the infrastructure and start it
+ * Moreover it wrap the method to send the messages.
+ * 
+ * can exist only one instance of the BroadCastSyncManager for JVM, it is responsibility of the application that is using BroadCastSync to ensure to create and use only one instance of the BroadCastSyncManager
+ * 
+ * a client application that want to use this libraries has to implement only the interface {@link MessageHandler} to manage the received messages, all the rest is managed automatically by the library.
+ * 
+ * start the BroadCastSync networks on one node is very simple:
+ * <code>
+ 			BroadCastSyncManager manager = new BroadCastSyncManager();
+			manager.initialize(new MessageHandlerLog());	//substitute whit you specific implementation of the message handler
+			manager.start();
+ * </code>
+ * 
+ * when the application shout down instead the resources have o be free up
+ * <code>
+			manager.shutdown();
+ * </code>
+ * 
+ * SEND MESSAGES ON THE NETWORK
+ * Last important point, the BroadCastSyncManager wrapp the method to send message os the network, avoiding to the developer to know how is working the internal infrastructure of BroadCastSync library.
+ * There are 3 methot able to senda  message on the networ:
+ * 1 - {@link BroadCastSyncManager#sendMessage(byte[])}
+ * 2 - {@link BroadCastSyncManager#sendMessage(String)}
+ * 3 - {@link BroadCastSyncManager#sendMessage(Serializable)}
+ * 
+ * see the jave doc of each method to have detail over its implementation or limits if any
+ * 
+ * 
  * 
  * @author Alessandro  D'Ottavio
  * @version 1.0
@@ -204,7 +230,7 @@ public class BroadCastSyncManager {
 	}
 
 	/**
-	 * Send a String on the networks, the string are deserialized/serialized in UTF-8
+	 * Send a String on the networks, the string are deserialized/serialized in a byte array using the UTF-8 encoding
 	 * 
 	 * @param data
 	 * @throws BroadCastSyncRuntimeException
@@ -239,33 +265,6 @@ public class BroadCastSyncManager {
 	public <T extends Serializable> void sendMessage(T object) throws BroadCastSyncRuntimeException, BroadCastSyncExceptionSerializeData{
 		udpClient.sendMessage(object);
 	}
-
-
-	public static void main(String[] args) throws Exception {
-		BroadCastSyncManager manager = new BroadCastSyncManager();
-		
-		BroadCastSyncConfig conf = BroadCastSyncConfig.buildDefault();
-		conf.setDevelopMode(true);
-		conf.setEnableHeartbeat(true);
-		
-		HeartBeatFactory heartBeatFactory = new HeartBeatFactoryInstanceId("ID instance");
-		
-		manager.initialize(conf, heartBeatFactory, new MessageHandlerLog());
-		manager.start();
-
-		manager.sendMessage("ciao stringa byte array".getBytes());
-		manager.sendMessage("ciao stringa");
-		manager.sendMessage(new Integer(9999999));			
-
-		manager.shutdown();
-		manager.start();		
-		
-		manager.sendMessage("ciao stringa byte array".getBytes());
-		manager.sendMessage("ciao stringa");
-		manager.sendMessage(new Integer(9999999));
-		
-	}
-	
 	
 	
 }
