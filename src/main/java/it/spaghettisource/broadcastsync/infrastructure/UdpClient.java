@@ -89,11 +89,11 @@ public class UdpClient {
 		}
 	}
 	
-	public void sendHeartBeatFlag() throws BroadCastSyncRuntimeException{
-		sendFlagMessage(MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
+	public void sendHeartBeatCommand() throws BroadCastSyncRuntimeException{
+		sendCommandMessage(MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
 	}
 	
-	public void sendHeartBeatData(byte[] data) throws BroadCastSyncRuntimeException{
+	public void sendHeartBeatCommandWithData(byte[] data) throws BroadCastSyncRuntimeException{
 		sendMessage(data, MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
 	}	
 
@@ -109,7 +109,7 @@ public class UdpClient {
 		sendMessage(objectSerializer.serialize(object), MessageType.MESSAGE_TYPE_DATA_JAVA_OBJECT,broadcastAddress);
 	}
 
-	private void sendFlagMessage(int messageType,InetAddress address) throws BroadCastSyncRuntimeException{
+	private void sendCommandMessage(int messageType,InetAddress address) throws BroadCastSyncRuntimeException{
 		
 		//prepare the packets
 		DatagramPacket datagramPacket = DatagramPacketDataProtocol.buildCommandDatagramPacket(address, config.getServerPort(), config.getDatagramPacketBufferSize(), messageType);

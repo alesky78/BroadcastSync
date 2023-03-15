@@ -46,11 +46,11 @@ public class HeartbeatEmitter implements Runnable{
 				//send hearbeat
 				if(heartBeatFactor.isCommandHeartBeat()){
 					log.debug("sent heartbeat");
-					udpClient.sendHeartBeatFlag();
+					udpClient.sendHeartBeatCommand();
 					
 				}else {
 					byte[] data = heartBeatFactor.buildSerializeHeartBeat();
-					udpClient.sendHeartBeatData(data);
+					udpClient.sendHeartBeatCommandWithData(data);
 					
 				}
 				
