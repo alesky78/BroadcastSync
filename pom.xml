@@ -5,10 +5,10 @@
 
 	<groupId>it.spaghettisource.broadcastsync</groupId>
 	<artifactId>broadcastsync</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 
 	<name>broadcastsync</name>
-	<description>sync nodes by broadcast messages wiht UDP protocol</description>
+	<description>Framework to sned messagess between nodes using broadcast messages over UDP protocol</description>
 
 	<organization>
 		<name>OniuSoft</name>
@@ -21,7 +21,6 @@
 			<name>Alessndro D'Ottavio</name>
 			<email>alessandro.dottavio@gmail.com</email>
 			<roles>
-				<role>project manager</role>
 				<role>architect</role>
 				<role>developer</role>
 			</roles>
