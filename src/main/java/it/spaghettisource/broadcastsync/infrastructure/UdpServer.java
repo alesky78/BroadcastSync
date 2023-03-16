@@ -139,7 +139,9 @@ public class UdpServer implements Runnable {
 			thread.interrupt();			
 		}
 		
-		serverSocket.close();		
+		if(serverSocket!=null) {
+			serverSocket.close();			
+		}
 		
 	}
 	
