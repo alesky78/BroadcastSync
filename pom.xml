@@ -5,10 +5,10 @@
 
 	<groupId>it.spaghettisource.broadcastsync</groupId>
 	<artifactId>broadcastsync</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 
 	<name>broadcastsync</name>
-	<description>Framework to sned messagess between nodes using broadcast messages over UDP protocol</description>
+	<description>Framework to send messagess between nodes using broadcast messages over UDP protocol</description>
 
 	<organization>
 		<name>OniuSoft</name>

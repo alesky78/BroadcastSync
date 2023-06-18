@@ -89,23 +89,23 @@ public class UdpClient {
 		}
 	}
 	
-	public void sendHeartBeatCommand() throws BroadCastSyncRuntimeException{
+	public synchronized void sendHeartBeatCommand() throws BroadCastSyncRuntimeException{
 		sendCommandMessage(MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
 	}
 	
-	public void sendHeartBeatCommandWithData(byte[] data) throws BroadCastSyncRuntimeException{
+	public synchronized void sendHeartBeatCommandWithData(byte[] data) throws BroadCastSyncRuntimeException{
 		sendMessage(data, MessageType.MESSAGE_TYPE_CMD_HEARTBEAT,broadcastAddress);
 	}	
 
-	public void sendMessage(byte[] data) throws BroadCastSyncRuntimeException{
+	public synchronized void sendMessage(byte[] data) throws BroadCastSyncRuntimeException{
 		sendMessage(data, MessageType.MESSAGE_TYPE_DATA_BYTE_ARRAY,broadcastAddress);
 	}
 
-	public void sendMessage(String data) throws BroadCastSyncRuntimeException{
+	public synchronized void sendMessage(String data) throws BroadCastSyncRuntimeException{
 		sendMessage(stringSeralizer.serialize(data), MessageType.MESSAGE_TYPE_DATA_UTF8_STRING,broadcastAddress);
 	}
 	
-	public <T extends Serializable> void sendMessage(T object) throws BroadCastSyncRuntimeException, BroadCastSyncExceptionSerializeData{
+	public synchronized <T extends Serializable> void sendMessage(T object) throws BroadCastSyncRuntimeException, BroadCastSyncExceptionSerializeData{
 		sendMessage(objectSerializer.serialize(object), MessageType.MESSAGE_TYPE_DATA_JAVA_OBJECT,broadcastAddress);
 	}
 
