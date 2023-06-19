@@ -62,7 +62,7 @@ public class UdpServer implements Runnable {
 			try {
 				
 				log.debug("listening for a new request");
-				byte[] messageBuffer = new byte[config.getDatagramPacketBufferSize()];;
+				byte[] messageBuffer = new byte[config.getDatagramPacketBufferSize()];
 				DatagramPacket messagePacket = new DatagramPacket(messageBuffer, messageBuffer.length);
 				serverSocket.receive(messagePacket);
 				
